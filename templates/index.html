@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klimaguessr</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        input:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .normal {
+            border-color: rgb(59 130 246 / var(--tw-border-opacity, 1));
+        }
+        .error {
+            border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
+        }
+        .switch {
+        font-size: 17px;
+        position: relative;
+        display: inline-block;
+        width: 3.5em;
+        height: 2em;
+        margin-bottom: 10px;
+        }
+
+        .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        }
+
+        .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #fff;
+        border: 1px solid #adb5bd;
+        transition: .4s;
+        border-radius: 30px;
+        }
+
+        .slider:before {
+        position: absolute;
+        content: "";
+        height: 1.4em;
+        width: 1.4em;
+        border-radius: 20px;
+        left: 0.27em;
+        bottom: 0.25em;
+        background-color: #adb5bd;
+        transition: .4s;
+        }
+
+        input:checked + .slider {
+        background-color: #007bff;
+        border: 1px solid #007bff;
+        }
+
+        input:focus + .slider {
+        box-shadow: 0 0 1px #ffffff;
+        } 
+
+        input:checked + .slider:before {
+            transform: translateX(1.4em);
+            background-color: #fff;
+        }
+        .button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: transform 0.4s ease-in;
+        }
+        .button:hover {
+            transform: rotate(60deg);   
+        }
+        .button:active {
+            animation: rot 1s linear infinite;
+        }
+        @keyframes rot {
+            from {
+                transform: rotate(-100deg);
+            }
+            to {
+                transform: rotate(180deg);
+            }
+        }
+        #alert {
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in;
+        }
+
+    </style>
+</head>
+<body class="p-4">
+    
+<div id="alert" class="fixed top-2 left-2 flex-col gap-2 w-60 sm:w-72 text-[10px] sm:text-xs z-50">
+    <div
+      class="succsess-alert cursor-default flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]"
+    >
+      <div class="flex gap-2">
+        <div id="success-icon" class="text-[#2b9875] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            ></path>
+          </svg>
+        </div>
+        <div id="error-icon" class="text-[#e52b2b] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <p id="alert-text" class="text-white"></p>
+          <p id="alert-subtitle" class="text-gray-500"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    <button id="profile-button" class="fixed top-3 left-3" style="box-shadow: none;">
+        <img src="profile.png" alt="Profile" class="w-10 h-10">
+        <label for="profile-button" id="username"></label>
+    </button>
+    
+    <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full border normal" id="container">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-400">Klima Guessr</h1>
+
+        <div id="lobbycode" class="text-3xl font-bold text-center mb-6 text-blue-400 hidden">
+            <button class="button" style="box-shadow: none;">
+                <img src="settings.png" alt="Settings" class="w-10 h-10">
+            </button>
+            <div id="rounds-input-container2" class="mb-4 hidden">
+                <label for="rounds-input2" class="block text-gray-300 text-sm font-bold mb-2">Number of Rounds:</label>
+                <input type="number" id="rounds-input2" value="5" min="1" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+
+            <div id="time-limit-container2" class="mb-6 hidden">
+                <label for="time-limit-input2" class="block text-gray-300 text-sm font-bold mb-2">Time Limit (seconds per round):</label><label class="switch">
+                    <input type="checkbox" id="time-limit-switch2">
+                    <span class="slider"></span>
+                </label>
+                
+                <input type="number" id="time-limit-inptu2" value="60" min="10" max="180" class="hidden shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+            <h1 id="lobbycodedisplay" class="text-3xl font-bold text-center mb-6 text-white"></h1>
+            <h2 id="players" class="text-3xl font-bold text-center mb-6 text-white">Players:</h2>
+            <button id="startgame-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">Start</button>
+        </div>
+
+        <div id="messagedisplay" class="text-3xl font-bold text-center mb-6 text-blue-400">
+            <h2 id="message" class="text-3xl font-bold text-center mb-6 text-white"></h2>
+        </div>
+
+        <div id="Navigation" class="flex justify-center mb-6">
+            <button id="multiplayer-tab" class="tab-button px-6 py-3 rounded-l-lg font-semibold text-lg transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Multiplayer
+            </button>
+            <button id="singleplayer-tab" class="tab-button px-6 py-3 font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Singleplayer
+            </button>
+            <button onclick="document.getElementById('legacy-popup').classList.remove('hidden')" id="legacy-tab" class="tab-button px-6 py-3 rounded-r-lg font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Legacy
+            </button>
+            <button id="login-tab" class="hidden tab-button px-6 py-3 rounded-l-lg font-semibold text-lg transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Login
+            </button>
+            <button id="register-tab" class="hidden tab-button px-6 rounded-r-lg py-3 font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Register
+            </button>
+        </div>
+
+        <div id="multiplayer-content" class="tab-content active">
+            <div class="mb-4">
+                <button id="create-lobby-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                    Create Lobby
+                </button>
+            </div>
+            <div class="relative flex py-5 items-center">
+                <div class="flex-grow border-t border-gray-600"></div>
+                <span class="flex-shrink mx-4 text-gray-400 font-medium">OR JOIN A GAME</span>
+                <div class="flex-grow border-t border-gray-600"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="lobby-code-input" class="block text-gray-300 text-sm font-bold mb-2">Lobby Code:</label>
+                <input type="text" id="lobby-code-input" placeholder="Enter lobby code" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" autocomplete="off">
+            </div>
+
+            <div class="mb-6">
+                <label for="nickname-input" class="block text-gray-300 text-sm font-bold mb-2">Nickname:</label> 
+                <div class="flex items-center">
+                    <input type="text" id="nickname-input" placeholder="Enter your nickname" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500 flex-1" autocomplete="off">
+                    <button id="usenickbtn" class="hidden ml-2 w-12 h-12 flex items-center justify-center bg-gray-700 border border-gray-600 rounded-lg" onclick="document.getElementById('nickname-input').value = document.getElementById('username').textContent">
+                        <img src="profile.png" alt="Icon" class="w-8 h-8">
+                    </button>
+                </div>
+            </div>
+
+            <button id="join-game-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                Join Game
+            </button>
+        </div>
+        <div id="legacy-popup" class="fixed top-0 right-0 w-full h-full bg-gray-800 bg-opacity-50 z-50 hidden">
+            <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-700 rounded-lg p-4">
+                <h2 class="text-2xl font-bold mb-4">Legacy Mode</h2>
+                <p class="text-gray-300">This is the oldest version of Klimaguesser.</p>
+                <p class="text-gray-300">It is harder then the current version and is missing some features.</p>
+                <p class="text-gray-300">Have fun!</p>
+                <button onclick="document.getElementById('legacy-popup').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105 mt-4">Close</button>
+            </div>
+        </div>
+
+        <div id="legacy-content" class="tab-content">
+            <div class="mb-4">
+                <button id="start-legacy-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                    Start Game
+                </button>
+            </div>
+        </div>
+
+        <div id="singleplayer-content" class="tab-content">
+            <div class="mb-4">
+                <label for="rounds-input" class="block text-gray-300 text-sm font-bold mb-2">Number of Rounds:</label>
+                <input type="number" id="rounds-input" value="5" min="1" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+
+            <div class="mb-6">
+                <label for="time-limit-input" class="block text-gray-300 text-sm font-bold mb-2">Time Limit (seconds per round):</label><label class="switch">
+                    <input type="checkbox" id="time-limit-switch" checked>
+                    <span class="slider"></span>
+                </label>
+                
+                <input type="number" id="time-limit-input" value="60" min="10" max="180" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+
+
+
+            <div class="flex gap-2">
+                <button id="start-singleplayer-btn" class="flex-grow bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                    Start Game
+                </button>
+                <button onclick="socket.emit('get_leaderboard')" class="w-12 h-12 flex items-center justify-center bg-gray-700 border border-gray-600 rounded-lg">🏆</button>
+            </div>
+        </div>
+        <div id="register-content" class="tab-content hidden">
+            <div class="mb-4">
+                <label for="register-username-input" class="block text-gray-300 text-sm font-bold mb-2">Username:</label>
+                <input type="text" id="register-username-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your username">
+            </div>
+            <div class="mb-4">
+                <label for="register-password-input" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
+                <input type="password" id="register-password-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your password">
+            </div>
+            <div class="mb-4">
+                <label for="register-email-input" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
+                <input type="email" id="register-email-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your email">
+            </div>
+            <button id="register-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                Register
+            </button>
+        </div>
+        <div id="login-content" class="tab-content hidden">
+            <div class="mb-4">
+                <label for="login-username-input" class="block text-gray-300 text-sm font-bold mb-2">Username:</label>
+                <input type="text" id="login-username-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your username">
+            </div>
+            <div class="mb-6">
+                <label for="login-password-input" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
+                <input type="password" id="login-password-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your password">
+            </div>
+            <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                Login
+            </button>
+        </div>
+    </div>
+    <div id="leaderboard" class="fixed inset-5 bg-gray-800 rounded-lg shadow-xl p-6 border normal hidden">
+        <h2 class="text-2xl font-bold mb-4 text-center">Leaderboard</h2>
+        <div id="leaderboard-list" class="divide-y divide-gray-600">
+            <div class="flex justify-between py-2 px-4">
+                <span class="flex-1 font-bold">Rank</span>
+                <span class="flex-1 font-bold">Username</span>
+                <span class="flex-1 font-bold">Score</span>
+                <span class="flex-1 font-bold">Date</span>
+            </div>
+        </div>
+        <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-200" onclick="document.getElementById('leaderboard').classList.add('hidden')">x </button>
+    </div>
+
+    <script>
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        // Get references to buttons and content sections
+        const multiplayerTab = document.getElementById('multiplayer-tab');
+        const singleplayerTab = document.getElementById('singleplayer-tab');
+        const legacyTab = document.getElementById('legacy-tab');
+        const multiplayerContent = document.getElementById('multiplayer-content');
+        const singleplayerContent = document.getElementById('singleplayer-content');
+        const legacyContent = document.getElementById('legacy-content');
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginContent = document.getElementById('login-content');
+        const registerContent = document.getElementById('register-content');
+
+        let loggedIn = false;
+
+        function init() {
+            if (urlParams.has('page')) {
+                const page = urlParams.get('page');
+                if (page === 'multiplayer') {
+                    activateTab(multiplayerTab, multiplayerContent);
+                } else if (page === 'singleplayer') {
+                    activateTab(singleplayerTab, singleplayerContent);
+                } else if (page === 'legacy') {
+                    activateTab(legacyTab, legacyContent);
+                } else if (page === 'login') {
+                    activateTab(loginTab, loginContent);
+                } else if (page === 'register') {
+                    activateTab(registerTab, registerContent);
+                } else if (page === 'leaderboard') {
+                    socket.emit('get_leaderboard');
+                }
+            }
+            if (getCookie("Token")) {
+                socket.emit('authenticate', {
+                    'token': getCookie("Token")
+                });
+            }
+        }
+
+        function sortLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard-list');
+            const rows = Array.from(leaderboard.children).slice(1); // Skip header row
+            rows.sort((a, b) => {
+                const scoreA = parseInt(a.children[2].textContent);
+                const scoreB = parseInt(b.children[2].textContent);
+                return scoreB - scoreA;
+            });
+            while (leaderboard.children.length > 1) {
+                leaderboard.removeChild(leaderboard.lastChild);
+            }
+            rows.forEach(row => leaderboard.appendChild(row));
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].children[0].textContent = i + 1; // Update rank
+            }
+        }
+
+        socket.on('connect', function() {
+            document.getElementById("alert-text").textContent = "Connection established";
+            document.getElementById("alert-subtitle").textContent = "Successfully connected to server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.remove("hidden");
+            document.getElementById("error-icon").classList.add("hidden");
+            console.log("Connected to server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+        socket.on('disconnect', function() {
+            document.getElementById("alert-text").textContent = "Connection lost";
+            document.getElementById("alert-subtitle").textContent = "Disconnected from server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.add("hidden");
+            document.getElementById("error-icon").classList.remove("hidden");
+            console.log("Disconnected from server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+        socket.on('auth_response', function(data) {
+            if (data.success) {
+                document.getElementById("alert-text").textContent = "Authentication successful";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                document.getElementById('username').textContent = data.username;
+                document.getElementById('login-tab').classList.add('hidden');
+                document.getElementById('register-tab').classList.add('hidden');
+                document.getElementById('profile-button').classList.remove('hidden');
+                document.getElementById("usenickbtn").classList.remove("hidden");
+                loggedIn = true;
+            } else {
+                document.getElementById("alert-text").textContent = "Authentication failed";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                document.cookie = "Token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        });
+        socket.on('lobby_created', function(data) {
+            if (data.success) {
+                console.log("Lobby created");
+                const lobby_code = data.lobby_code;
+                console.log("Lobby code: " + lobby_code);
+                document.cookie = "Lobbycode=" + lobby_code + "; path=/";
+                document.cookie = "Role=Host; path=/";
+                document.getElementById('lobbycode').classList.remove('hidden');
+                document.getElementById('lobbycodedisplay').textContent = "Lobbycode: " + lobby_code;
+                document.getElementById('Navigation').classList.add('hidden');
+                document.getElementById('multiplayer-content').style.display = "none";
+                document.getElementById('singleplayer-content').style.display = "none";
+                document.getElementById('startgame-btn').addEventListener('click', async () => {
+                    if (document.getElementById("players").children.length < 2) {
+                        document.getElementById("alert-text").textContent = "Not enough players";
+                        document.getElementById("alert-subtitle").textContent = "You need more players to play.";
+                        document.getElementById("alert").style.transform = "translateX(0)";
+                        document.getElementById("success-icon").classList.add("hidden");
+                        document.getElementById("error-icon").classList.remove("hidden");
+                        return;
+                    }
+                    socket.emit('start_lobby', {
+                        'lobby_code': lobby_code
+                    });
+                });
+            }
+            else {
+                document.getElementById("alert-text").textContent = "Error creating lobby";
+                document.getElementById("alert-subtitle").textContent = arguments[0].message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                return;
+            }
+        });
+
+        socket.on('lobby_update', function(data) {
+            console.log("Lobby update received");
+            document.getElementById('lobbycodedisplay').textContent = "Lobbycode: " + data.lobby_code;
+            document.getElementById('players').innerHTML = "Players: ";
+            for (let i = 0; i < Object.keys(data.details.players).length; i++) {
+                const player = document.createElement("p");
+                player.textContent = Object.keys(data.details.players)[i]+",\n";
+                document.getElementById('players').appendChild(player);
+            }
+        });
+        socket.on('game_started', function(data) {
+            console.log("Game started event received");
+            if (data.success) {
+                console.log("Game started");
+                if (getCookie("Role") === "Host") {
+                    if (document.getElementById("time-limit-switch2").checked) {
+                        window.location.href = "/multiplayerhost?rounds=" + document.getElementById("rounds-input2").value + "&time=" + document.getElementById("time-limit-input2").value;
+                    } else {
+                        window.location.href = "/multiplayerhost?rounds=" + document.getElementById("rounds-input2").value + "&time=0";
+                    }
+                } else {
+                    window.location.href = "/multiplayer";
+                }
+            }
+        });
+        socket.on("leaderboard_update", function(data) {
+            console.log("Leaderboard data received");
+            console.log(data);
+            
+            const leaderboardList = document.getElementById('leaderboard-list');
+            leaderboardList.innerHTML = '<div class="flex justify-between py-2 px-4"><span class="flex-1 font-bold">Rank</span><span class="flex-1 font-bold">Username</span><span class="flex-1 font-bold">Score</span><span class="flex-1 font-bold">Date</span></div>';
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const entryDiv = document.createElement('div');
+                entryDiv.classList.add('flex', 'justify-between', 'py-2', 'px-4');
+                entryDiv.innerHTML = `
+                    <span class="flex-1">${i+1}</span>
+                    <span class="flex-1">${entry.username}</span>
+                    <span class="flex-1">${entry.score}</span>
+                    <span class="flex-1">${entry.timestamp}</span>
+                `;
+                leaderboardList.appendChild(entryDiv);
+            }
+            sortLeaderboard();
+            document.getElementById('leaderboard').classList.remove('hidden');
+        });
+        socket.on("registration_response", function(data) {
+            if (data.success) {
+                document.getElementById("alert-text").textContent = "Registration successful";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                socket.emit('login', {
+                    'username': document.getElementById("register-username-input").value,
+                    'password': document.getElementById("register-password-input").value
+                });
+            } else {
+                document.getElementById("alert-text").textContent = "Error registering";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+            }
+        });
+        socket.on("login_response", function(data) {
+            if (data.success) {
+                document.getElementById("alert-text").textContent = "Login successful";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                document.getElementById('profile-button').click();
+                activateTab(multiplayerTab, multiplayerContent);
+                document.getElementById('username').textContent = data.username;
+                document.cookie = "Token=" + data.token + "; path=/";
+                document.getElementById("usenickbtn").classList.remove("hidden");
+                loggedIn = true;
+            } else {
+                document.getElementById("alert-text").textContent = "Error logging in";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+            }
+        });
+        socket.on('join_result', function(data) {
+            if (data.success) {
+                document.getElementById('Navigation').classList.add('hidden');
+                document.getElementById('multiplayer-content').style.display = "none";
+                document.getElementById('singleplayer-content').style.display = "none";
+                document.getElementById("messagedisplay").classList.remove('hidden');
+                document.getElementById("message").textContent = data.message;
+                document.cookie = "Lobbycode=" + data.lobby_code + "; path=/";
+                document.cookie = "Role=Player; path=/";
+                document.cookie = "Nickname=" + data.nickname + "; path=/";
+            }
+            else {
+                document.getElementById("alert-text").textContent = "Error joining lobby";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                }
+            });
+        function activateTab(activeTabButton, activeTabContent) {
+            // Update button styles
+            const tabButtons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('bg-blue-600', 'text-white');
+                tabButtons[i].classList.add('bg-gray-600', 'text-gray-200');
+            }
+            activeTabButton.classList.remove('bg-gray-600', 'text-gray-200');
+            activeTabButton.classList.add('bg-blue-600', 'text-white');
+
+            // Update content visibility 
+            for (let i = 0; i < document.getElementsByClassName("tab-button").length; i++) {
+                document.getElementsByClassName("tab-button")[i].classList.remove('active');
+            }
+            for (let i = 0; i < document.getElementsByClassName("tab-content").length; i++) {
+                document.getElementsByClassName("tab-content")[i].classList.remove('active');
+            }
+            activeTabContent.classList.add('active');
+            activeTabButton.classList.add('active');
+        }
+
+        // Event listener for Multiplayer tab button
+        multiplayerTab.addEventListener('click', () => {
+            activateTab(multiplayerTab, multiplayerContent);
+        });
+        // Event listener for Single Player tab button
+        singleplayerTab.addEventListener('click', () => {
+            activateTab(singleplayerTab, singleplayerContent);
+        });
+        legacyTab.addEventListener('click', () => {
+            activateTab(legacyTab, legacyContent);
+        });
+        loginTab.addEventListener('click', () => {
+            activateTab(loginTab, loginContent);
+        });
+        registerTab.addEventListener('click', () => {
+            activateTab(registerTab, registerContent);
+        });
+        document.getElementsByClassName("button")[0].addEventListener("click", function() {
+            document.getElementById("startgame-btn").classList.toggle("hidden");
+            document.getElementById("lobbycodedisplay").classList.toggle("hidden");
+            document.getElementById("players").classList.toggle("hidden");
+            document.getElementById("rounds-input-container2").classList.toggle("hidden");
+            document.getElementById("time-limit-container2").classList.toggle("hidden");
+        });
+        document.getElementById("profile-button").addEventListener("click", function() {
+            if (!loggedIn) {
+                for (let i = 0; i < document.getElementsByClassName("tab-button").length; i++) {
+                    document.getElementsByClassName("tab-button")[i].classList.remove('active');
+                    document.getElementsByClassName("tab-button")[i].classList.toggle("hidden");
+                }
+                for (let i = 0; i < document.getElementsByClassName("tab-content").length; i++) {
+                    document.getElementsByClassName("tab-content")[i].classList.remove('active');
+                }
+                if (loginTab.classList.contains("hidden") || registerTab.classList.contains("hidden")) {
+                    multiplayerContent.classList.add("active");
+                    multiplayerTab.classList.add("active");
+                } else {
+                    loginTab.classList.add("active");
+                    loginContent.classList.add("active");
+                }
+            }
+        });
+        document.getElementById("register-btn").addEventListener("click", function() {
+            socket.emit('register', {
+                'username': document.getElementById("register-username-input").value,
+                'password': document.getElementById("register-password-input").value,
+                'email': document.getElementById("register-email-input").value
+            });
+        });
+        document.getElementById("login-btn").addEventListener("click", function() {
+            socket.emit('login', {
+                'username': document.getElementById("login-username-input").value,
+                'password': document.getElementById("login-password-input").value
+            });
+        });
+        document.getElementById("time-limit-switch").addEventListener("change", function() {
+            if (this.checked) {
+                document.getElementById("time-limit-input").classList.remove("hidden");
+            } else {
+                document.getElementById("time-limit-input").classList.add("hidden");
+            }
+        });
+        document.getElementById("time-limit-switch2").addEventListener("change", function() {
+            if (this.checked) {
+                document.getElementById("time-limit-input2").classList.remove("hidden");
+            } else {
+                document.getElementById("time-limit-input2").classList.add("hidden");
+            }
+        });
+
+        document.getElementById("time-limit-input").addEventListener("input", function() {
+            if (this.value > 180) {
+                this.value = 180;
+            }
+        });
+
+        document.getElementById("rounds-input").addEventListener("input", function() {
+            if (this.value > 15) {
+                this.value = 15;
+            }
+        });
+
+        // Initial tab activation on load (Multiplayer is active by default in HTML)
+        // Ensure the correct button styling is applied on initial load
+        multiplayerTab.classList.add('bg-blue-600', 'text-white');
+        multiplayerTab.classList.remove('bg-gray-600', 'text-gray-200');
+        singleplayerTab.classList.add('bg-gray-600', 'text-gray-200');
+        singleplayerTab.classList.remove('bg-blue-600', 'text-white');
+
+        if (getCookie("Lobbycode") && getCookie("Role") == "Host") {
+            (async () => {
+            const response = await fetch(`/is_lobby_joinable`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    "lobby_code": getCookie("Lobbycode") 
+                })
+            });
+            const data = await response.json();
+            if (!data["joinable"]) {
+                document.cookie = "Lobbycode=; path=/";
+                document.cookie = "Role=; path=/";
+            }
+            })();
+        }
+        
+        if (!getCookie("Lobbycode") === "" || !getCookie("Role") === "" || !getCookie("Lobbycode") === null || !getCookie("Role") === null) {
+            document.getElementById('create-lobby-btn').textContent = "Continue Game";
+            document.getElementById('create-lobby-btn').addEventListener('click', async () => {
+                const Result = await fetch("/continue_game", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        "Lobbycode": getCookie("Lobbycode"),
+                        "Role": getCookie("Role"),
+                    }),
+                });
+                const Resultdata = await Result.json();
+                console.log(Resultdata);
+            });
+        } else {
+            document.getElementById('create-lobby-btn').addEventListener('click', () => {
+                socket.emit('create_lobby');
+            });
+            
+        }
+        
+        document.getElementById("start-legacy-btn").addEventListener("click", () => {
+            window.location.href = "singleplayerlegacy";
+        });
+
+        document.getElementById('join-game-btn').addEventListener('click', () => {
+            console.log("Join game button clicked");
+            const lobbyCode = document.getElementById('lobby-code-input').value;
+            const nickname = document.getElementById('nickname-input').value;
+            socket.emit('join_lobby', {
+                'lobby_code': lobbyCode,
+                'nickname': nickname
+            });
+        });
+
+        document.getElementById('start-singleplayer-btn').addEventListener('click', () => {
+            const rounds = document.getElementById('rounds-input').value;
+            const timeLimit = document.getElementById('time-limit-input').value;
+            const timeLimitSwitch = document.getElementById('time-limit-switch').checked;
+            if (rounds < 1 || rounds === null) {
+                rounds = 1;
+            }
+            if (timeLimit < 10 || timeLimit === null) {
+                timeLimit = 10;
+            }
+            if (rounds > 15 || rounds === null) {
+                rounds = 15;
+            }
+            if (timeLimit > 180 || timeLimit === null) {
+                timeLimit = 180;
+            }
+            if (timeLimitSwitch) {
+                window.location.href = "/singleplayer?rounds=" + rounds + "&time=" + timeLimit;
+            } else {
+                window.location.href = "/singleplayer?rounds=" + rounds + "&time=0";
+            }
+            
+            // Add your functionality here
+        });
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) {
+                    return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                }
+            }
+            return null;
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>

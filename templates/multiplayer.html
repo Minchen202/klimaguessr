@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klimaguessr</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script> 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a202c;
+            min-height: 100vh;
+            color: white;
+        }
+
+        #headbar {
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          width: 99%;
+          height: 80px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 10px;
+          background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+          border-width: 1px;
+          border-color: #1754ce;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 25%;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 50%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header h1 {
+            text-align: center;
+            color: white;
+        }
+        #map {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-guess {
+            position: absolute;
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+            right: 10px;
+            bottom: 20px;
+            z-index: 1;
+            width: 120px;
+        }
+        .hidden {
+            display: none;
+        }
+        .guess_sent {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .guess_sent-content-error {
+            position: fixed;
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .guess_sent-content {
+            position: fixed;
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .guess_sent h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        .guess_sent-content-error h2 {
+            margin-bottom: 20px;
+            color: #FF0000;
+        }
+        #roundDisplay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+        }
+        #totalScoreDisplay {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+        .guess-marker {
+            color: #FF0000;
+        }
+        #alert {
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <div id="alert" class="fixed top-2 left-2 flex-col gap-2 w-60 sm:w-72 text-[10px] sm:text-xs z-50">
+    <div
+      class="succsess-alert cursor-default flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]"
+    >
+      <div class="flex gap-2">
+        <div id="success-icon" class="text-[#2b9875] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            ></path>
+          </svg>
+        </div>
+        <div id="error-icon" class="text-[#e52b2b] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <p id="alert-text" class="text-white"></p>
+          <p id="alert-subtitle" class="text-gray-500"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div id="container">
+        <div id="headbar">
+            <div class="header">
+                <h1>Klima Guessr</h1>
+            </div>
+            <div class="score-info">
+                <div id="totalScoreDisplay">Score: <span id="totalScore">0</span></div>
+            </div>
+        </div>
+        <div id="map"></div>
+        <button class="btn btn-guess hidden" id="guessbutton">Guess</button>
+    </div>
+    
+    <div class="guess_sent hidden" id="guess_sent">
+        <div class="guess_sent-content">
+            <h2>Guess sent</h2>
+            <p>Waiting for other player...</p>
+        </div>
+    </div>
+    <div class="guess_sent hidden" id="guess_sent_error">
+        <div class="guess_sent-content-error">
+            <h2>Guess failed</h2>
+            <p id="guess_sent_error_text"></p>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        const socket = io();
+
+        let map = null;
+        let guessMarker = null;
+        let userGuess = null;
+        let status = "playing";
+
+        socket.on('connect', function() {
+            document.getElementById("alert-text").textContent = "Connection established";
+            document.getElementById("alert-subtitle").textContent = "Successfully connected to server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.remove("hidden");
+            document.getElementById("error-icon").classList.add("hidden");
+            console.log("Connected to server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+        socket.on('disconnect', function() {
+            document.getElementById("alert-text").textContent = "Connection lost";
+            document.getElementById("alert-subtitle").textContent = "Disconnected from server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.add("hidden");
+            document.getElementById("error-icon").classList.remove("hidden");
+            console.log("Disconnected from server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+
+        socket.on("end_game", function(info) {
+            window.location.href = "/";
+        });
+
+        socket.on("new_round_started", function(info) {
+            if (info.success) {
+                const data = info;
+                console.log("New round started");
+                status = "playing";
+                document.getElementById("guessbutton").disabled = false;
+                map.on('click', onMapClick);
+                document.getElementById("guess_sent").classList.add("hidden");
+            }
+        });
+
+        socket.on("guess_result", function(info) {
+            const data = info;
+            if (info.success) {
+                console.log("Guess sent");
+                document.getElementById("guess_sent").classList.remove("hidden");
+            } else {
+                console.log(data.message);
+                document.getElementById("guess_sent_error").classList.remove("hidden");
+                document.getElementById("guess_sent_error_text").textContent = data.message;
+
+            }
+        });
+
+        socket.on("round_ended", function(info) {
+            if (info.success) {
+                if (info.details.status === "result") {
+                    status = "result";
+                    document.getElementById("totalScore").textContent = info.details.players[getCookie("Nickname")].score;
+                }
+            }
+        });
+
+        socket.on("new_round_started", function(info) {
+            if (info.success) {
+                if (info.details.status === "playing") {
+                    console.log("Round started");
+                    status = "playing";
+                    document.getElementById("guessbutton").disabled = false;
+                    map.on('click', onMapClick);
+                    document.getElementById("guess_sent").classList.add("hidden");
+                }
+            }
+        });
+
+        function initGame() {
+            socket.emit("register", {
+                lobby_code: getCookie("Lobbycode"),
+                nickname: getCookie("Nickname")
+            })
+            if (getCookie("Lobbycode") === "" || getCookie("Lobbycode") === null) {
+                window.location.href = "/";
+            }
+            if (getCookie("Nickname") === "" || getCookie("Nickname") === null) {
+                window.location.href = "/";
+            }
+            map = L.map('map').setView([20, 0], 2);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const linecoordinates = [[0, -9999999999],[0, 9999999999]]
+            const aquator = L.polyline(linecoordinates, {
+                color: "#A9A9A9", weight: 0.7, dashArray: null, opacity: 0.8 
+            }).addTo(map);
+
+            const south = L.polyline([[23.4367, -9999999999],[23.4367, 9999999999]], {
+                color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+            
+            const north = L.polyline([[-23.4367, -9999999999],[-23.4367, 9999999999]], {
+                color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+
+            map.on('click', onMapClick);
+            document.getElementsByClassName("leaflet-control-zoom")[0].style.display = "none";
+        }
+        function onMapClick(e) {
+            userGuess = e.latlng;
+            
+
+            if (guessMarker) map.removeLayer(guessMarker);
+            
+
+            guessMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({
+                    html: '📍',
+                    iconSize: [25, 25],
+                    className: 'guess-marker'
+                })
+            }).addTo(map);
+
+            document.getElementById("guessbutton").classList.remove("hidden");
+            document.getElementById("guessbutton").addEventListener("click", () => {
+                if (status === "playing") {
+                    sendGuess(userGuess);
+                }
+            });
+        }
+
+        async function sendGuess(userGuess) {
+            if (status !== "playing") return;
+            status = "result";
+            document.getElementById("guessbutton").classList.add("hidden");
+            document.getElementById("guessbutton").disabled = true;
+            map.off('click', onMapClick);
+            socket.emit("make_guess", {
+                "lobby_code": getCookie("Lobbycode"),
+                "guess": {
+                    "lat": userGuess.lat,
+                    "lng": userGuess.lng
+                },
+                "nickname": getCookie("Nickname")
+            });
+
+        }
+        function getCookie(name) {
+          const nameEQ = name + "=";
+          const ca = document.cookie.split(';');
+          for (let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+              if (c.indexOf(nameEQ) === 0) {
+                  return decodeURIComponent(c.substring(nameEQ.length, c.length));
+              }
+          }
+          return null;
+      }
+        window.onload = initGame;
+    </script>
+</body>
+</html>

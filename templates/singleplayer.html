@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Klima Guessr - Kannst du eraten wo das Klimadiagramm herkommt?">
+    <meta name="author" content="Jannik H.">
+    <meta name="icon" content="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Klima Guessr</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a202c;
+            min-height: 100vh;
+            color: white;
+        }
+
+        #headbar {
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          width: 98%;
+          height: 80px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 10px;
+          background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+          border-width: 1px;
+          border-color: #1754ce;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 25%;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 50%;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .climate-chart {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            align-items: center;    
+        }
+        
+        #roundDisplay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+        }
+        #totalScoreDisplay {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+        .chart-title {
+            text-align: center;
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-again{
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            z-index: 1;
+        }
+        .btn-safe{
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            z-index: 1;
+            margin-top: 10px;
+        }
+        .btn-guess {
+            position: absolute;
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+            right: 10px;
+            bottom: 20px;
+            z-index: 1;
+            width: 120px;
+        }
+        .btn-guess.hidden {
+            display: none;
+        }
+
+        .btn-primary {
+            position: absolute;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            left: -550px;
+            bottom: 20px;
+            z-index: 1;
+        }
+
+        .btn-secondary {
+            position: fixed;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            top: 40px;
+            left: 10px;
+            z-index: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #map {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+        }
+
+        .result-popup {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .result-popup.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .game-over {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-over-content {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .game-over h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196F3;
+            margin: 20px 0;
+        }
+
+        .instruction {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        #climateChart:before {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 50%;
+            height: 45%;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        #climateChart.big {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 800px;
+            height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        #climateChart {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 400px;
+            height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            #climateChart {
+                width: 100%;
+                height: 40%;
+                position: fixed;
+                bottom: 0px;
+                right: 0px;
+                z-index: 1;
+                border-radius: 10px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                transition: all 0.3s ease;
+            }
+            #climateChart:before {
+                display: none;
+            }
+            #header {
+              position: fixed;
+              height: 5%;
+            }
+        }
+        .timeinfo{
+          position: absolute;
+          width: 50px;
+          height: 50px;
+          background-color: white;
+          border-radius: 100%;
+          right: 10px;
+          top: 40px;
+          display: flex; 
+          justify-content: center; 
+          align-items: center;
+        }
+        .time {
+          color: #333;
+          font-size: 1.1em;
+          font-weight: bold;
+          display: flex;
+        }
+        .guess-marker {
+          color: red;
+        }
+        
+        #alert {
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in;
+        }
+    </style>
+</head>
+<body>
+  <div id="alert" class="fixed top-2 left-2 flex-col gap-2 w-60 sm:w-72 text-[10px] sm:text-xs z-50">
+    <div
+      class="succsess-alert cursor-default flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]"
+    >
+      <div class="flex gap-2">
+        <div id="success-icon" class="text-[#2b9875] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            ></path>
+          </svg>
+        </div>
+        <div id="error-icon" class="text-[#e52b2b] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <p id="alert-text" class="text-white"></p>
+          <p id="alert-subtitle" class="text-gray-500"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div>
+        <canvas id="climateChart" width="400" height="300"></canvas>
+        <div id="headbar">
+            <div class="header">
+                <h1>🌍 Klima Guessr</h1>
+            </div>
+
+            <div class="score-info">
+                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span> <span class="hidden" id="usernameDisplay"> User:</span> <span id="username"></span></div></div>
+                <div id="totalScoreDisplay">Score: <span id="totalScore">0</span>  Highscore: <span id="highscore">0</span></div>
+            </div>
+        </div>
+          <div class="buttons">
+              
+              <button class="btn btn-secondary" onclick="newGame()">+</button>
+              <button class="btn btn-primary" id="nextBtn" onclick="nextRound()" disabled>Next Round</button>
+              <button class="btn btn-guess hidden" id="guessbutton">Guess</button>
+              <div class="timeinfo"><span class="time"></span></div>
+          </div>
+        
+
+        <div>
+            <div id="map"></div>
+            <div class="result-popup" id="resultPopup">
+                <h3 id="resultTitle"></h3>
+                <p id="resultText"></p>
+                <p><strong>Points:</strong> <span id="points"></span></p>
+            </div>
+        </div>            
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2>🎉 Game Complete!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <p>Well played! Ready for another round?</p>
+            <button class="btn btn-again" onclick="newGame()">Play Again</button>
+            <button class="btn btn-safe" onclick="safeGame()">Safe in Leaderboard</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let currentRound = 1;
+        let totalScore = 0;
+        let userGuess = null;
+        let map = null;
+        let guessMarker = null;
+        let actualMarker = null;
+        let roundComplete = false;
+        let time = 0;
+        let loggedIn = false;
+
+        socket.on('connect', function() {
+            document.getElementById("alert-text").textContent = "Connection established";
+            document.getElementById("alert-subtitle").textContent = "Successfully connected to server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.remove("hidden");
+            document.getElementById("error-icon").classList.add("hidden");
+            console.log("Connected to server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+        socket.on('disconnect', function() {
+            document.getElementById("alert-text").textContent = "Connection lost";
+            document.getElementById("alert-subtitle").textContent = "Disconnected from server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.add("hidden");
+            document.getElementById("error-icon").classList.remove("hidden");
+            console.log("Disconnected from server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+
+        socket.on('auth_response', function(data) {
+            if (data.success) {
+                document.getElementById("alert-text").textContent = "Authentication successful";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                document.getElementById('username').textContent = data.username;
+                document.getElementById('usernameDisplay').classList.remove('hidden');
+                loggedIn = true;
+            } else {
+                document.getElementById("alert-text").textContent = "Authentication failed";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+                document.cookie = "Token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        });
+
+        socket.on("solo_game_start_response", function(data) {
+            if (data.success) {
+                currentRound = 1;
+                totalScore = 0;
+                document.getElementById('currentRound').textContent = currentRound;
+                document.getElementById('totalScore').textContent = totalScore;
+                drawClimateChart(data.climate);
+            } else {
+                document.getElementById("alert-text").textContent = "Error starting game";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+            }
+        });
+        socket.on('resize_chart_response', function(data) {
+          if (data.big) {
+            document.getElementById("climateChart").width = "800";
+            document.getElementById("climateChart").height = "600";
+            document.getElementById("climateChart").classList.add("big");
+            drawClimateChart(data.climate, big=true);
+          } else {
+            document.getElementById("climateChart").width = "400";
+            document.getElementById("climateChart").height = "300";
+            document.getElementById("climateChart").classList.remove("big");
+            drawClimateChart(data.climate, big=false);
+          }
+        });
+
+        socket.on("solo_guess_response", function(data) {
+           if (userGuess) {
+            actualMarker = L.marker([data.actual_location.lat, data.actual_location.lng], {
+                icon: L.divIcon({
+                    html: '🎯',
+                    iconSize: [25, 25],
+                    className: 'actual-marker'
+                })
+            }).addTo(map);
+
+            currentRound = data.current_round;
+            totalScore = data.total_points;
+
+            document.getElementById('resultTitle').textContent = `Round ${data.current_round} Result`;
+            document.getElementById('resultText').textContent = `Actual location: ${data.name}`;
+            document.getElementById('points').textContent = data.points_earned;
+            document.getElementById('resultPopup').classList.add('show');
+
+            setTimeout(() => {
+                document.getElementById('resultPopup').classList.remove('show');
+            }, 3000);
+            
+
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('nextBtn').style.transition = 'transform 0.5s ease-in-out';
+            document.getElementById('nextBtn').style.left = '20px';
+            
+
+            const line = L.polyline([
+                [userGuess.lat, userGuess.lng],
+                [data.actual_location.lat, data.actual_location.lng]
+            ], {color: 'red', weight: 3, opacity: 0.7}).addTo(map);
+            
+
+            const group = new L.featureGroup([guessMarker, actualMarker]);
+            map.fitBounds(group.getBounds().pad(0.1));
+            
+            document.getElementById('totalScore').textContent = totalScore;
+          } else {
+            roundComplete = true;
+            document.getElementById("guessbutton").classList.add("hidden");
+            document.getElementById("guessbutton").removeEventListener("click", showResult);
+            
+            actualMarker = L.marker([data.actual_location.lat, data.actual_location.lng], {
+                icon: L.divIcon({
+                    html: '🎯',
+                    iconSize: [25, 25],
+                    className: 'actual-marker'
+                })
+            }).addTo(map);
+            
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('nextBtn').style.transition = 'transform 0.5s ease-in-out';
+            document.getElementById('nextBtn').style.left = '20px';
+          } 
+        });
+        socket.on("solo_round_started", function(data) {
+            if (data.success) {
+
+                console.log(data.message);
+                drawClimateChart(data.climate);
+                document.getElementById('currentRound').textContent = data.current_round;
+                document.getElementById('totalScore').textContent = data.total_score;
+                starttimer();
+            } else {
+                alert(data.message);
+            }
+        });
+        socket.on("solo_game_deleted", function(data) {
+            if (data.success) {
+                if (guessMarker) map.removeLayer(guessMarker);
+                if (actualMarker) map.removeLayer(actualMarker);
+                document.getElementById('nextBtn').style.left = '-550px';
+                currentRound = 1;
+                if (document.getElementsByClassName("leaflet-interactive")[3]) document.getElementsByClassName("leaflet-interactive")[3].remove();
+                totalScore = 0;
+                document.getElementById('gameOver').style.display = 'none';
+                map.setView([20, 0], 2);
+                roundComplete = false;
+                socket.emit('start_solo_game');     
+            } else {
+                alert(data.message);
+            }
+        });
+        socket.on("save_solo_response", function(data) {
+            if (data.success) {
+                document.
+                document.getElementById("alert-text").textContent = "Game saved";
+                document.getElementById("alert-subtitle").textContent = "Your score has been saved to the leaderboard.";
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                    window.location.href = "/?page=leaderboard";
+                }, 3000);
+            } else {
+                document.getElementById("alert-text").textContent = "Error saving game";
+                document.getElementById("alert-subtitle").textContent = data.message;
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+            }
+        });
+
+        function initGame() {
+            if (getCookie("Token")) {
+                socket.emit('authenticate', {
+                    'token': getCookie("Token")
+                });
+            }
+            if (urlParams.get("rounds") === null || urlParams.get("rounds") < 1 || urlParams.get("time") === null) {
+                window.location.href = "/";
+            }
+            document.getElementById("totalrounds").textContent = "/"+urlParams.get("rounds");
+            document.getElementById("highscore").textContent = getCookie("Highscore");
+            if (getCookie("Highscore") === null) {
+                document.cookie = "Highscore=0; path=/";
+                document.getElementById("highscore").textContent = "0";
+            }
+            if (window.innerWidth >= 768) {
+                document.getElementsByClassName("btn-secondary")[0].textContent = "New Game";
+                document.getElementById("climateChart").addEventListener("mouseover", function() {
+                    socket.emit('resize_chart', {big: true});
+                });
+
+                document.getElementById("climateChart").addEventListener("mouseout", function() {
+                    socket.emit('resize_chart', {big: false});
+                });
+            } else {
+                document.getElementById("climateChart").width = window.innerWidth;
+                document.getElementById("climateChart").height = window.innerHeight * 0.4;
+            }
+            
+            
+
+            map = L.map('map').setView([20, 0], 2);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const linecoordinates = [[0, -9999999999],[0, 9999999999]]
+            const aquator = L.polyline(linecoordinates, {
+              color: "#A9A9A9", weight: 0.7, dashArray: null, opacity: 0.8 
+            }).addTo(map);
+
+            const south = L.polyline([[23.4367, -9999999999],[23.4367, 9999999999]], {
+              color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+            
+            const north = L.polyline([[-23.4367, -9999999999],[-23.4367, 9999999999]], {
+              color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+
+            map.on('click', onMapClick);
+            document.getElementsByClassName("leaflet-control-zoom")[0].style.display = "none";
+            
+            socket.emit('start_solo_game');           
+        }
+            
+
+        function starttimer() {
+          time = parseInt(urlParams.get("time"));
+          if (time <= 0) {
+            document.getElementsByClassName("timeinfo")[0].style.display = "none";
+          } else {  
+            var timer = setInterval(()=> {
+            if (time <= 0) {
+              showResult();
+              clearInterval(timer);
+            } else if (roundComplete === true) clearInterval(timer);
+            document.getElementsByClassName("time")[0].textContent = time; 
+            time--;
+            }, 1000);
+          }
+        }
+        function getCookie(name) {
+          const nameEQ = name + "=";
+          const ca = document.cookie.split(';');
+          for (let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+              if (c.indexOf(nameEQ) === 0) {
+                  return decodeURIComponent(c.substring(nameEQ.length, c.length));
+              }
+          }
+          return null;
+      }
+
+        function startRound() {
+            if (guessMarker) map.removeLayer(guessMarker);
+            if (actualMarker) map.removeLayer(actualMarker);
+            console.log("Starting round " + currentRound);
+
+            userGuess = null;
+            roundComplete = false;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('resultPopup').classList.remove('show');
+            socket.emit('start_solo_round');
+          }
+
+        function drawClimateChart(location, big=false) {
+            const canvas = document.getElementById('climateChart');
+            const ctx = canvas.getContext('2d');
+            
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+
+            const margin = 60;
+            const chartWidth = canvas.width - 2 * margin;
+            const chartHeight = canvas.height - 2 * margin;
+            
+
+            const avgTemp = Math.round((location.temp.reduce((a, b) => a + b, 0) / 12) * 10) / 10;
+            const totalPrecip = location.precip.reduce((a, b) => a + b, 0);
+            
+
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                ctx.fillText(months[i], x, canvas.height - margin + 20);
+            }
+            
+
+            const maxTemp = Math.max(...location.temp);
+            const minTemp = Math.min(...location.temp);
+            const maxPrecip = Math.max(...location.precip);
+            const tempRange = Math.max(maxTemp - minTemp + 10, 20);
+            
+
+            ctx.fillStyle = '#dc3545';
+            if (big) ctx.font = '20px Arial';
+            else ctx.font = '10px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const temp = minTemp - 5 + (tempRange / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight;
+                ctx.fillText(Math.round(temp) + '°C', margin - 5, y + 3);
+                
+
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(canvas.width - margin, y);
+                ctx.stroke();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            ctx.textAlign = 'left';
+            for (let i = 0; i <= 5; i++) {
+                const precip = (maxPrecip / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight * 0.7;
+                ctx.fillText(Math.round(precip) + 'mm', canvas.width - margin + 5, y + 3);
+            }
+            
+
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#dc3545';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + i * (chartWidth / 12) + (chartWidth / 24);
+                const barWidth = chartWidth / 24;
+                const barHeight = (location.precip[i] / maxPrecip) * (chartHeight * 0.7);
+                const y = canvas.height - margin - barHeight;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Temperatur (°C)', margin, 20);
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(margin + 100, 15, 15, 3);
+            
+            ctx.fillStyle = '#333';
+            ctx.fillText('Niederschlag (mm)', margin + 130, 20);
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(margin + 250, 12, 10, 10);
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Temperatur Ø: ${avgTemp}°C`, margin, canvas.height - 5);
+            ctx.fillText(`Niederschlag: ${totalPrecip}mm`, margin + 120, canvas.height - 5);
+        }
+
+        function onMapClick(e) {
+            if (roundComplete) return;
+            
+            userGuess = e.latlng;
+            
+
+            if (guessMarker) map.removeLayer(guessMarker);
+            
+
+            guessMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({
+                    html: '📍',
+                    iconSize: [25, 25],
+                    className: 'guess-marker'
+                })
+            }).addTo(map);
+
+            document.getElementById("guessbutton").classList.remove("hidden");
+            document.getElementById("guessbutton").addEventListener("click", showResult);
+        }
+
+        function showResult() {  
+            socket.emit('submit_solo_guess', {
+                'guessLat': userGuess.lat,
+                'guessLng': userGuess.lng
+            });        
+            roundComplete = true;
+
+            document.getElementById("guessbutton").classList.add("hidden");
+            document.getElementById("guessbutton").removeEventListener("click", showResult);
+        }
+
+        function nextRound() {
+            document.getElementById('nextBtn').style.left = '-550px';
+            document.getElementsByClassName("leaflet-interactive")[3].remove();
+            if (currentRound >= urlParams.get("rounds")) {
+                endGame();
+            } else {
+                map.setView([20, 0], 2);
+                startRound();
+            }
+        }
+        function safeGame() {
+            console.log("Saving game...");
+            if (currentRound < urlParams.get("rounds")) return;
+            console.log("Game over, proceeding to save...");
+            if (loggedIn) {
+                console.log("User is logged in, saving game...");
+                socket.emit('save_solo_game', {"token": getCookie("Token")});
+            } else {
+                console.log("User is not logged in, showing alert.");
+                document.getElementById("alert-text").textContent = "Not logged in";
+                document.getElementById("alert-subtitle").textContent = "Please log in to save your score.";
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.add("hidden");
+                document.getElementById("error-icon").classList.remove("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                }, 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('finalScore').textContent = totalScore + ' points';
+            document.getElementById("highscore").textContent = totalScore;
+            if (totalScore > getCookie("Highscore")) {
+                document.cookie = "Highscore=" + totalScore +"; path=/";
+            }
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+
+        function newGame() {
+            socket.emit("delete_solo_game");
+        }
+
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

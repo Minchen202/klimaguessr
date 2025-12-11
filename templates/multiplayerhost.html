@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klima Guessr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #1a202c;
+        }
+        #headbar {
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          width: 99%;
+          height: 80px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 10px;
+          background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+          border-width: 1px;
+          border-color: #1754ce;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 25%;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 50%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header h1 {
+            text-align: center;
+            color: white;
+        }
+
+        #climateChart {
+            position: fixed;
+            bottom: 50px;
+            right: 10px;
+            width: 99%;
+            height: 80%;
+            z-index: 1;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            background-color: blueviolet;
+        }
+        #notsended {
+            position: fixed;
+            display: flex;
+            bottom: 0px;
+            left: 10px;
+            width: 40%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: left;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 2000;
+            padding-left: 10px;
+        }
+        #sended {
+            position: fixed;
+            display: flex;
+            bottom: 0px;
+            right: 10px;
+            width: 40%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: left;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 2000;
+            padding-left: 10px;
+        }
+        #notsended-text {
+            color: white;
+        }
+        #sended-text {
+            color: white;
+        }
+        .endround {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 220px;
+            height: 40px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 2000;
+            color: white;
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #map {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+        }
+        .hidden {
+            display: none;
+        }
+        .guess-text {
+            text-align: center;
+        }
+        .card{
+          position: fixed;
+          height: 87%;
+          bottom: 10px;
+          left: 10px;
+          width: 98%;
+          padding: 10px;
+          background: #141922;
+          font-family: "Courier New", Courier, monospace;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
+          border-bottom-left-radius: 4px;
+          border-bottom-right-radius: 4px;
+        }
+        .card__title {
+          border-radius: 12px;
+          text-align: center;
+          color: white;
+          font-size: 2rem;
+        }
+        .card__data {
+          font-size: 0.8rem;
+          background-color: #1a253a;
+        }
+        .card__data:nth-child(even) {
+          background: #222d42;
+        }
+        .item {
+          border-radius: 12px;
+          padding: 3px 0;
+          height: 100px;
+          text-align: center;
+          justify-content: space-between;
+          border-right: 1px solid #141922;
+          border-left: 1px solid #141922;
+          border-bottom: 1px solid #141922;
+          color: white;
+          font-size: 2rem;
+        }
+        
+        .item_middle {
+          width: 50%;
+        }
+        .item_left {
+          width: 25%;
+        }
+        .item_right {
+          width: 25%;
+        }
+        .timeinfo{
+          position: absolute;
+          width: 50px;
+          height: 50px;
+          background-color: white;
+          border-radius: 100%;
+          left: 10px;
+          top: 30px;
+          display: flex; 
+          justify-content: center; 
+          align-items: center;
+        }
+        .time {
+          color: #333;
+          font-size: 1.1em;
+          font-weight: bold;
+          display: flex;
+        }
+        #roundDisplay {
+            position: fixed;
+            color: white;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+        }
+        #alert {
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <div id="alert" class="fixed top-2 left-2 flex-col gap-2 w-60 sm:w-72 text-[10px] sm:text-xs z-50">
+    <div
+      class="succsess-alert cursor-default flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]"
+    >
+      <div class="flex gap-2">
+        <div id="success-icon" class="text-[#2b9875] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            ></path>
+          </svg>
+        </div>
+        <div id="error-icon" class="text-[#e52b2b] bg-white/5 backdrop-blur-xl p-1 rounded-lg hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <p id="alert-text" class="text-white"></p>
+          <p id="alert-subtitle" class="text-gray-500"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div id="map"></div>
+    <table id="points" class="card hidden">
+        <tr style="height: 100px;">
+            <td class="card__title" colspan="3">
+                <h2>Platz | Spieler | Punkte</h2>
+            </td>
+        </tr>
+    </table>
+    <div id="container">
+        <button id="endround" class="endround">End Round</button>
+        <div id="headbar">
+            <div class="score-info">
+                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span></div>
+            </div>
+            <div class="timeinfo"><span class="time"></span></div>
+            <div class="header">
+                <h1>Klima Guessr</h1>
+            </div>
+        </div>
+        
+        <div id="climate-chart">
+            <canvas id="climateChart" width="1000px" height="400px"></canvas>
+        </div>
+        
+        <div id="notsended"><h2 id="notsended-text">Not sent:</h2></div>
+        <div id="sended"><h2 id="sended-text">Sended:</h2></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        const socket = io();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let notsended = "";
+        let sended = "";
+        let actualMarker = null;
+        let map = null;
+        let status = "";
+        let time = 0;
+        let round = 1;
+        let result1 = true;
+
+        socket.on('connect', function() {
+            document.getElementById("alert-text").textContent = "Connection established";
+            document.getElementById("alert-subtitle").textContent = "Successfully connected to server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.remove("hidden");
+            document.getElementById("error-icon").classList.add("hidden");
+            console.log("Connected to server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+        socket.on('disconnect', function() {
+            document.getElementById("alert-text").textContent = "Connection lost";
+            document.getElementById("alert-subtitle").textContent = "Disconnected from server.";
+            document.getElementById("alert").style.transform = "translateX(0)";
+            document.getElementById("success-icon").classList.add("hidden");
+            document.getElementById("error-icon").classList.remove("hidden");
+            console.log("Disconnected from server");
+            setTimeout(function() {
+                document.getElementById("alert").style.transform = "translateX(-100%)";
+            }, 3000);
+        });
+
+        socket.on('lobby_info', function(info) {
+            if (info.success) {
+                const data = info;
+                status = data["details"]["status"];
+                document.getElementById("currentRound").textContent = data["details"]["round"];
+                if (status === "playing") {
+                    console.log(data.all_players);
+                    document.getElementById("notsended-text").textContent = "Not sent: "+data.all_players.join(", ");
+                    drawClimateChart(data["details"]["active_climate"]);
+                    document.getElementById("endround").addEventListener("click", endRound);
+                    starttimer();
+                } else if (status === "result" && result1 === true) {
+                    addmap();
+                    document.getElementById("climate-chart").classList.add("hidden");
+                    document.getElementById("endround").textContent = "Next";
+                    document.getElementById("notsended").style.display = "none";
+                    try {
+                        document.getElementById("endround").removeEventListener("click", next);
+                    } catch {
+                        console.error("Error removing event listener:");
+                    }
+                    document.getElementById("endround").addEventListener("click", next);
+                    document.getElementById("sended").style.display = "none";
+                    actualMarker = L.marker([data["details"]["active_climate"]["lat"], data["details"]["active_climate"]["lng"]], {
+                        icon: L.divIcon({
+                            html: '🎯',
+                            iconSize: [25, 25],
+                            className: 'actual-marker'
+                        })
+                    }).addTo(map);
+                    for (let i = 0; i < Object.keys(data.details.players).length; i++) {
+                        if (Object.values(data.details.players)[i].alreadyguessed) {
+                            const marker = L.marker([Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng], {
+                                icon: L.divIcon({
+                                    html: '📍',
+                                    iconSize: [25, 25],
+                                    className: 'guess-marker'
+                                })
+                            }).addTo(map);
+                            const text = L.marker([Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng], {
+                                icon: L.divIcon({
+                                    html: Object.values(data.details.players)[i].nickname,
+                                    iconSize: [0, 0],
+                                    className: 'guess-text'
+                                })
+                            }).addTo(map);
+                            
+                            const line = L.polyline([
+                                [Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng],
+                                [data["details"]["active_climate"]["lat"], data["details"]["active_climate"]["lng"]]
+                            ], {color: 'red', weight: 3, opacity: 0.7}).addTo(map);
+                        }
+                    }
+                }
+            }
+            else {
+                console.log("else");
+                if (getCookie("Highscore")){
+                    const high = getCookie("Highscore");
+                    document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
+                    document.cookie = "Highscore=" + high + "; path=/";
+                } else {
+                    document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
+                }
+                window.location = "/";
+            }
+        });
+        socket.on("player_guessed", function(info) {
+            const data = info;
+            document.getElementById("notsended-text").textContent = "Not sent: "+data.not_guessed.join(", ");
+            document.getElementById("sended-text").textContent = "Sended: "+data.already_guessed.join(", ");
+
+        });
+        socket.on("end_game", function(info) {
+            window.location.href = "/";
+        });
+        socket.on('lobby_info', function(info) {
+            const data = info;
+            if (data.success && result1 === false) {
+                let items = 0;
+                result1 = true;
+
+                if (Object.keys(data.details.players).length > 5) {
+                    items = 5;
+                } else {
+                    items = Object.keys(data.details.players).length;
+                }
+                document.querySelectorAll('.card__data').forEach(el => el.remove());
+                for (let i = 0; i < items; i++) {
+                    console.log("Adding player "+i);
+                    const nickname = Object.values(data.details.players)[i].nickname;
+                    const points = Object.values(data.details.players)[i].score || 0;
+                    const tablerow = document.createElement("tr");
+                    tablerow.classList.add("card__data");
+                    tablerow.id = "points-"+i;
+                    const item_left = document.createElement("td");
+                    const item_right = document.createElement("td");
+                    const item_middle = document.createElement("td");
+                    item_left.textContent = i+1;
+                    item_right.textContent = points;
+                    item_middle.textContent = nickname;
+                    item_left.classList.add("item");
+                    item_right.classList.add("item");
+                    item_middle.classList.add("item");
+                    tablerow.appendChild(item_left);
+                    tablerow.appendChild(item_middle);
+                    tablerow.appendChild(item_right);
+                    console.log("Adding tablerow");
+                    document.getElementById("points").appendChild(tablerow);
+                }
+                sortTable(data.details.players);
+
+            } else {
+                result1 = false;
+            }
+        });
+        socket.on('new_round_result', function(info) {
+            if (info.success) {
+                const data = info.details;
+                drawClimateChart(data.active_climate);
+                for (let i = 0; i < document.getElementsByClassName("card__data").length; i++) {
+                    document.getElementsByClassName("card__data")[i].remove();
+                }
+            }
+        });
+
+        socket.on('new_round_started', function(info) {
+            if (info.success) {
+                const data = info;
+                round = data.round;
+                document.getElementById("currentRound").textContent = round;
+                document.getElementById("notsended-text").textContent = "Not sent: "+data.all_players.join(", ");
+                startRound();
+            }
+        });
+
+        async function initGame() {
+            if (urlParams.get("rounds") === null || urlParams.get("rounds") < 1 || urlParams.get("time") === null) {
+                window.location.href = "/";
+            }
+            document.getElementById("totalrounds").textContent = "/"+urlParams.get("rounds");
+
+            if (getCookie("Lobbycode") === "" || getCookie("Lobbycode") === null) {
+                console.log("Lobbycode");
+                window.location.href = "/";
+            }
+            if (getCookie("Role") === "Player") {
+                console.log("Player");
+                window.location.href = "/multiplayer.html";
+            } else if (getCookie("Role") !== "Host") {
+                console.log("Role");
+                window.location.href = "/";
+            }
+
+            socket.emit("register_player", {
+                "lobby_code": getCookie("Lobbycode"),
+                "nickname": getCookie("Role")
+            });
+            socket.emit("get_lobby_info", {
+                "lobby_code": getCookie("Lobbycode")
+            });
+            
+        }
+
+        function starttimer() {
+          time = parseInt(urlParams.get("time"));
+          if (time <= 0) {
+            document.getElementsByClassName("timeinfo")[0].style.display = "none";
+          } else {  
+            var timer = setInterval(()=> {
+            if (time <= 0) {
+              endRound();
+              clearInterval(timer);
+            } else if (status === "result") clearInterval(timer);
+            document.getElementsByClassName("time")[0].textContent = time; 
+            time--;
+            }, 1000);
+          }
+        }
+        
+        function addmap() {
+            map = L.map('map').setView([20, 0], 2);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            const linecoordinates = [[0, -9999999999],[0, 9999999999]]
+            const aquator = L.polyline(linecoordinates, {
+                color: "#A9A9A9", weight: 0.7, dashArray: null, opacity: 0.8 
+            }).addTo(map);
+
+            const south = L.polyline([[23.4367, -9999999999],[23.4367, 9999999999]], {
+                color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+            
+            const north = L.polyline([[-23.4367, -9999999999],[-23.4367, 9999999999]], {
+                color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+            document.getElementsByClassName("leaflet-control-zoom")[0].style.display = "none";
+        }
+        function removeMap() {
+            map.remove();
+            document.getElementById("map").classList.remove("leaflet-container", "leaflet-touch", "leaflet-fade-anim");
+        }
+
+        socket.on('game_update', function(info) {
+            if (info.success) {
+                const data = info;
+                status = data.details.status;
+                if (data.details.status !== "playing") {
+                    return;
+                }
+                notsended = "";
+                sended = data.details.players;
+                document.getElementById("notsended-text").textContent = "Not sent: "+notsended;
+                document.getElementById("sended-text").textContent = "Sent: "+sended;
+            }
+        });
+        socket.on("round_ended", function(info) {
+            if (info.success) {
+                addmap();
+                document.getElementById("endround").removeEventListener("click", endRound);
+                document.getElementById("endround").addEventListener("click", next);
+                document.getElementById("endround").textContent = "Next";
+                document.getElementById("climate-chart").classList.add("hidden");
+                document.getElementById("notsended").style.display = "none";
+                document.getElementById("sended").style.display = "none";
+                const data = info;
+                status = data["details"]["status"];
+                actualMarker = L.marker([data["actual_location_lat"], data["actual_location_lng"]], {
+                    icon: L.divIcon({
+                        html: '🎯',
+                        iconSize: [25, 25],
+                        className: 'actual-marker'
+                    })
+                }).addTo(map); 
+                for (let i = 0; i < Object.keys(data.details.players).length; i++) {
+                    if (Object.values(data.details.players)[i].alreadyguessed) {
+                        const marker = L.marker([Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng], {
+                            icon: L.divIcon({
+                                html: '📍',
+                                iconSize: [25, 25],
+                                className: 'guess-marker'
+                            })
+                        }).addTo(map);
+                        const text = L.marker([Object.values(data.details.players)[i].guess.lat+5, Object.values(data.details.players)[i].guess.lng-4], {
+                            icon: L.divIcon({
+                                html: Object.values(data.details.players)[i].nickname,
+                                iconSize: [0, 0],
+                                className: 'guess-text'
+                            })
+                        }).addTo(map);
+                        const line = L.polyline([
+                            [Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng],
+                            [data["actual_location_lat"], data["actual_location_lng"]]
+                        ], {color: 'red', weight: 3, opacity: 0.7}).addTo(map);
+                    }
+                }
+            }
+        });
+        function startRound() {
+            document.getElementById("sended-text").textContent = "Sended: ";
+            document.getElementById("climate-chart").classList.remove("hidden");
+            document.getElementById("notsended").style.display = "flex";
+            document.getElementById("currentRound").textContent = round;
+            document.getElementById("sended").style.display = "flex";
+            document.getElementById("endround").textContent = "End Round";
+            document.getElementById("points").classList.add("hidden");
+            document.getElementById("endround").removeEventListener("click", startRound);
+            document.getElementById("endround").addEventListener("click", endRound);
+            socket.emit("start_new_round", {
+                "lobby_code": getCookie("Lobbycode"),
+            });
+        }
+        function sortTable(players) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("points");
+
+            if (Object.values(players).length < table.rows.length - 1) {
+                console.log("Players is");
+            }
+
+            switching = true;
+            /* Make a loop that will continue until
+            no switching has been done: */
+            while (switching) {
+                // Start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /* Loop through all table rows (except the
+                first, which contains table headers): */
+                for (i = 1; i < (rows.length - 1); i++) {
+                    // Start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /* Get the two elements you want to compare,
+                    one from current row and one from the next: */
+                    x = rows[i].getElementsByTagName("TD")[2];
+                    y = rows[i + 1].getElementsByTagName("TD")[2];
+                    // Check if the two rows should switch place:
+                    if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    /* If a switch has been marked, make the switch
+                    and mark that a switch has been done: */
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+            for (let i = 1; i < rows.length; i++) {
+                rows[i].getElementsByTagName("TD")[0].innerHTML = i;
+            }
+          }
+        function next() {
+            if (round >= parseInt(urlParams.get("rounds"))) {
+                document.getElementById("alert-text").textContent = "Game finished";
+                document.getElementById("alert-subtitle").textContent = "You have reached the maximum number of rounds.";
+                document.getElementById("alert").style.transform = "translateX(0)";
+                document.getElementById("success-icon").classList.remove("hidden");
+                document.getElementById("error-icon").classList.add("hidden");
+                setTimeout(function() {
+                    document.getElementById("alert").style.transform = "translateX(-100%)";
+                    setTimeout(function() {
+                        socket.emit("end_game", {
+                            "lobby_code": getCookie("Lobbycode"),
+                        });
+                    }, 500);
+                }, 3000);
+                return;
+            }
+            console.log("Next round");
+            document.getElementById("endround").textContent = "Start Round";
+            removeMap();
+            document.getElementById("points").classList.remove("hidden");
+            document.getElementById("endround").removeEventListener("click", next);
+            document.getElementById("endround").addEventListener("click", startRound);
+            socket.emit("get_lobby_info", {
+                "lobby_code": getCookie("Lobbycode")
+            });
+        }
+        function endRound() {
+            socket.emit("end_round", {
+                "lobby_code": getCookie("Lobbycode"),
+            });
+        }
+
+        function getCookie(name) {
+          const nameEQ = name + "=";
+          const ca = document.cookie.split(';');
+          for (let i = 0; i < ca.length; i++) {
+              let c = ca[i];
+              while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+              if (c.indexOf(nameEQ) === 0) {
+                  return decodeURIComponent(c.substring(nameEQ.length, c.length));
+              }
+          }
+          return null;
+      }
+
+        function drawClimateChart(location, big=true) {
+            const canvas = document.getElementById('climateChart');
+            const ctx = canvas.getContext('2d');
+            
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+
+            const margin = 60;
+            const chartWidth = canvas.width - 2 * margin;
+            const chartHeight = canvas.height - 2 * margin;
+            
+
+            const avgTemp = Math.round((location.temp.reduce((a, b) => a + b, 0) / 12) * 10) / 10;
+            const totalPrecip = location.precip.reduce((a, b) => a + b, 0);
+            
+
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                ctx.fillText(months[i], x, canvas.height - margin + 20);
+            }
+            
+
+            const maxTemp = Math.max(...location.temp);
+            const minTemp = Math.min(...location.temp);
+            const maxPrecip = Math.max(...location.precip);
+            const tempRange = Math.max(maxTemp - minTemp + 10, 20);
+            
+
+            ctx.fillStyle = '#dc3545';
+            if (big) ctx.font = '20px Arial';
+            else ctx.font = '10px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const temp = minTemp - 5 + (tempRange / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight;
+                ctx.fillText(Math.round(temp) + '°C', margin - 5, y + 3);
+                
+
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(canvas.width - margin, y);
+                ctx.stroke();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            ctx.textAlign = 'left';
+            for (let i = 0; i <= 5; i++) {
+                const precip = (maxPrecip / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight * 0.7;
+                ctx.fillText(Math.round(precip) + 'mm', canvas.width - margin + 5, y + 3);
+            }
+            
+
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#dc3545';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + i * (chartWidth / 12) + (chartWidth / 24);
+                const barWidth = chartWidth / 24;
+                const barHeight = (location.precip[i] / maxPrecip) * (chartHeight * 0.7);
+                const y = canvas.height - margin - barHeight;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Temperatur (°C)', margin, 20);
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(margin + 100, 15, 15, 3);
+            
+            ctx.fillStyle = '#333';
+            ctx.fillText('Niederschlag (mm)', margin + 130, 20);
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(margin + 250, 12, 10, 10);
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Temperatur Ø: ${avgTemp}°C`, margin, canvas.height - 5);
+            ctx.fillText(`Niederschlag: ${totalPrecip}mm`, margin + 120, canvas.height - 5);
+        }
+        window.onload = initGame;
+    </script>
+</body>
+</html>

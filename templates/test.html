@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .card{
+          position: fixed;
+          height: 87%;
+          bottom: 10px;
+          left: 10px;
+          width: 98%;
+          padding: 10px;
+          background: #141922;
+          font-family: "Courier New", Courier, monospace;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
+          border-bottom-left-radius: 4px;
+          border-bottom-right-radius: 4px;
+        }
+        .card__title {
+          border-radius: 12px;
+          text-align: center;
+          color: white;
+          font-size: 2rem;
+        }
+        .card__data {
+          font-size: 0.8rem;
+          background-color: #1a253a;
+        }
+        .card__data:nth-child(even) {
+          background: #222d42;
+        }
+        .item {
+          border-radius: 12px;
+          padding: 3px 0;
+          height: 100px;
+          text-align: center;
+          justify-content: space-between;
+          border-right: 1px solid #141922;
+          border-left: 1px solid #141922;
+          border-bottom: 1px solid #141922;
+          color: white;
+          font-size: 2rem;
+        }
+        
+        .item_middle {
+          width: 50%;
+        }
+        .item_left {
+          width: 25%;
+        }
+        .item_right {
+          width: 25%;
+        }
+    </style>
+</head>
+<body>
+    <!-- From Uiverse.io by Rodrypaladin --> 
+    <table id="points" class="card">
+        <tr style="height: 100px;">
+            <td class="card__title" colspan="3">
+                <h2>Platz | Spieler | Punkte</h2>
+            </td>
+        </tr>
+      </table>
+      <button id="guessbutton">Sortieren</button>
+      <script>
+          document.getElementById("guessbutton").addEventListener("click", () => sortTable("points"));
+          function sortTable(id) {
+              var table, rows, switching, i, x, y, shouldSwitch;
+              table = document.getElementById(id);
+              switching = true;
+              
+              /* Make a loop that will continue until
+              no switching has been done: */
+              while (switching) {
+                  // Start by saying: no switching is done:
+                  switching = false;
+                  rows = table.rows;
+                  /* Loop through all table rows (except the
+                  first, which contains table headers): */
+                  for (i = 1; i < (rows.length - 1); i++) {
+                      // Start by saying there should be no switching:
+                      shouldSwitch = false;
+                      /* Get the two elements you want to compare,
+                      one from current row and one from the next: */
+                      x = rows[i].getElementsByTagName("TD")[2];
+                      y = rows[i + 1].getElementsByTagName("TD")[2];
+                      // Check if the two rows should switch place:
+                      if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                          shouldSwitch = true;
+                          break;
+                      }
+                  }
+                  if (shouldSwitch) {
+                      /* If a switch has been marked, make the switch
+                      and mark that a switch has been done: */
+                      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                      switching = true;
+                  }
+              }
+              for (let i = 1; i < rows.length; i++) {
+                  rows[i].getElementsByTagName("TD")[0].innerHTML = i;
+              }
+          }
+      </script>
+</body>
+</html>
