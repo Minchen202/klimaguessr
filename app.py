@@ -2182,4 +2182,4 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=True, port=5000)
+    socketio.run(app,debug=True, port=8081)
