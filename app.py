@@ -1762,6 +1762,10 @@ def multiplayer():
 def singleplayer():
     return render_template("singleplayer.html")
 
+@app.route("/legal", methods=["GET"])
+def legal():
+    return render_template("legal.html")
+
 @app.route("/singleplayerlegacy", methods=["GET"])
 def singleplayerlegacy():
     return render_template("singleplayerlegacy.html")
