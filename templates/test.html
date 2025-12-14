@@ -1,110 +1,279 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Datenschutzerklärung</title>
     <style>
-        .card{
-          position: fixed;
-          height: 87%;
-          bottom: 10px;
-          left: 10px;
-          width: 98%;
-          padding: 10px;
-          background: #141922;
-          font-family: "Courier New", Courier, monospace;
-          border-top-left-radius: 12px;
-          border-top-right-radius: 12px;
-          border-bottom-left-radius: 4px;
-          border-bottom-right-radius: 4px;
-        }
-        .card__title {
-          border-radius: 12px;
-          text-align: center;
-          color: white;
-          font-size: 2rem;
-        }
-        .card__data {
-          font-size: 0.8rem;
-          background-color: #1a253a;
-        }
-        .card__data:nth-child(even) {
-          background: #222d42;
-        }
-        .item {
-          border-radius: 12px;
-          padding: 3px 0;
-          height: 100px;
-          text-align: center;
-          justify-content: space-between;
-          border-right: 1px solid #141922;
-          border-left: 1px solid #141922;
-          border-bottom: 1px solid #141922;
-          color: white;
-          font-size: 2rem;
-        }
-        
-        .item_middle {
-          width: 50%;
-        }
-        .item_left {
-          width: 25%;
-        }
-        .item_right {
-          width: 25%;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: auto; padding: 20px; }
+        h1, h2, h3 { color: #333; }
+        .contact-info { margin-left: 20px; }
+        .list-item-title { font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <!-- From Uiverse.io by Rodrypaladin --> 
-    <table id="points" class="card">
-        <tr style="height: 100px;">
-            <td class="card__title" colspan="3">
-                <h2>Platz | Spieler | Punkte</h2>
-            </td>
-        </tr>
-      </table>
-      <button id="guessbutton">Sortieren</button>
-      <script>
-          document.getElementById("guessbutton").addEventListener("click", () => sortTable("points"));
-          function sortTable(id) {
-              var table, rows, switching, i, x, y, shouldSwitch;
-              table = document.getElementById(id);
-              switching = true;
-              
-              /* Make a loop that will continue until
-              no switching has been done: */
-              while (switching) {
-                  // Start by saying: no switching is done:
-                  switching = false;
-                  rows = table.rows;
-                  /* Loop through all table rows (except the
-                  first, which contains table headers): */
-                  for (i = 1; i < (rows.length - 1); i++) {
-                      // Start by saying there should be no switching:
-                      shouldSwitch = false;
-                      /* Get the two elements you want to compare,
-                      one from current row and one from the next: */
-                      x = rows[i].getElementsByTagName("TD")[2];
-                      y = rows[i + 1].getElementsByTagName("TD")[2];
-                      // Check if the two rows should switch place:
-                      if (Number(x.innerHTML) < Number(y.innerHTML)) {
-                          shouldSwitch = true;
-                          break;
-                      }
-                  }
-                  if (shouldSwitch) {
-                      /* If a switch has been marked, make the switch
-                      and mark that a switch has been done: */
-                      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                      switching = true;
-                  }
-              }
-              for (let i = 1; i < rows.length; i++) {
-                  rows[i].getElementsByTagName("TD")[0].innerHTML = i;
-              }
-          }
-      </script>
+
+    <h1>Datenschutzerklärung</h1>
+
+    <h2>1. Einleitung</h2>
+
+    <p>Diese Website wird betrieben von: Jannik Hinkelmann.</p>
+
+    <p>Es ist uns sehr wichtig, mit den Daten unserer Website-Besucher vertrauensvoll umzugehen und diese bestmöglich zu schützen. Aus diesem Grund sind wir sehr bemüht, die Anforderungen der DSGVO zu erfüllen.</p>
+
+    <p>Im Folgenden erklären wir, wie wir Ihre Daten auf unserer Website verarbeiten. Wir verwenden eine möglichst klare und transparente Sprache, damit Sie wirklich verstehen, was mit Ihren Daten geschieht.</p>
+
+    <h2>2. Allgemeine Informationen</h2>
+
+    <h3>2.1 Verarbeitung personenbezogener Daten und andere Begriffe</h3>
+
+    <p>Der Datenschutz gilt für die Verarbeitung personenbezogener Daten. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können. Dies ist beispielsweise die IP-Adresse des Geräts (PC, Laptop, Smartphone, etc.), vor dem Sie gerade sitzen. Solche Daten werden verarbeitet, wenn 'etwas damit passiert'. Hier wird z.B. die IP-Adresse vom Browser an unseren Provider übermittelt und dort automatisch gespeichert. Dies ist dann eine Verarbeitung (gemäß Art. 4 Nr. 2 DSGVO) personenbezogener Daten (gemäß Art. 4 Nr. 1 DSGVO).</p>
+
+    <p>Diese und weitere Legaldefinitionen finden Sie in <a href="https://dsgvo-gesetz.de/art-4-dsgvo/" target="_blank">Art. 4 DSGVO</a>.</p>
+
+    <h3>2.2 Anwendbare Vorschriften/Gesetze – DSGVO, BDSG und TDDDG</h3>
+
+    <p>Der Umfang des Datenschutzes ist gesetzlich geregelt. Dies sind in diesem Fall die <a href="https://dsgvo-gesetz.de/" target="_blank">DSGVO</a> (Datenschutz-Grundverordnung) als europäische Verordnung und das <a href="https://www.gesetze-im-internet.de/bdsg_2018/" target="_blank">BDSG</a> (Bundesdatenschutzgesetz) als nationales Gesetz.</p>
+
+    <p>Ergänzend zur DSGVO ergänzt das <a href="https://www.gesetze-im-internet.de/tdddg/" target="_blank">TDDDG</a> die Bestimmungen, soweit es die Verwendung von Cookies betrifft.</p>
+
+    <h3>2.3 Der Verantwortliche</h3>
+
+    <p>Der Verantwortliche im Sinne der DSGVO ist für die Datenverarbeitung auf dieser Website verantwortlich. Dies ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten entscheidet.</p>
+
+    <p>Sie erreichen den Verantwortlichen unter:</p>
+    <div class="contact-info">
+        <p>Jannik Hinkelmann</p>
+        <p>Climate measurement</p>
+        <p>email@email.com</p>
+    </div>
+
+    <h3>2.4 So werden Daten auf dieser Website grundsätzlich verarbeitet</h3>
+
+    <p>Wie wir bereits festgestellt haben, gibt es Daten (z.B. IP-Adresse), die automatisch erhoben werden. Diese Daten sind hauptsächlich für die technische Bereitstellung der Website erforderlich. Wenn wir darüber hinaus personenbezogene Daten verwenden oder andere Daten erheben, werden wir Sie darüber informieren oder um Ihre Einwilligung bitten.</p>
+
+    <p>Andere personenbezogene Daten teilen Sie uns bewusst mit.</p>
+
+    <p>Detailliertere Informationen dazu finden Sie weiter unten.</p>
+
+    <h3>2.5 Ihre Rechte</h3>
+
+    <p>Die DSGVO gewährt Ihnen umfassende Rechte. Dazu gehört beispielsweise die unentgeltliche Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten. Sie können auch die Berichtigung, Sperrung oder Löschung dieser Daten verlangen oder eine Beschwerde bei der zuständigen Datenschutz-Aufsichtsbehörde einlegen. Ihre Einwilligung können Sie jederzeit widerrufen.</p>
+
+    <p>Was diese Rechte im Detail sind und wie Sie sie ausüben können, erfahren Sie im letzten Abschnitt dieser Datenschutzerklärung.</p>
+
+    <h3>2.6 Datenschutz – Unsere Sicht</h3>
+
+    <p>Datenschutz ist für uns mehr als nur eine lästige Pflicht! Personenbezogene Daten sind von großem Wert und der sorgfältige Umgang mit diesen Daten sollte in unserer digitalisierten Welt selbstverständlich sein. Zudem sollen Sie als Website-Besucher selbst entscheiden können, was wann und von wem mit Ihren Daten "passiert". Deshalb verpflichten wir uns, alle gesetzlichen Bestimmungen einzuhalten, nur die für uns notwendigen Daten zu erheben und diese selbstverständlich vertraulich zu behandeln.</p>
+
+    <h3>2.7 Weitergabe und Löschung</h3>
+
+    <p>Die Weitergabe und Löschung von Daten sind ebenfalls wichtige und sensible Themen. Deshalb möchten wir Sie vorab kurz über unser allgemeines Vorgehen informieren.</p>
+
+    <p>Eine Weitergabe von Daten erfolgt nur aufgrund einer gesetzlichen Grundlage und nur, wenn dies unvermeidbar ist. Dies kann insbesondere der Fall sein, wenn es sich um einen sogenannten Auftragsverarbeiter handelt und eine Auftragsverarbeitungsvereinbarung gemäß Art. 28 DSGVO abgeschlossen wurde.</p>
+
+    <p>Wir löschen Ihre Daten, wenn der Zweck und die Rechtsgrundlage für die Verarbeitung entfallen und der Löschung keine sonstigen gesetzlichen Pflichten entgegenstehen. Einen „guten“ Überblick darüber bietet auch <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank">Art. 17 DSGVO</a>.</p>
+
+    <p>Weitere Informationen entnehmen Sie bitte dieser Datenschutzerklärung und wenden Sie sich bei konkreten Fragen an den Verantwortlichen.</p>
+
+    <h3>2.8 Hosting</h3>
+
+    <p>Diese Website wird auf unseren eigenen Servern gehostet. Wir speichern die auf dieser Website erhobenen personenbezogenen Daten auf unseren Servern. Hierbei handelt es sich zum einen um die automatisch erhobenen und gespeicherten Logfiles (Details dazu siehe unten), als auch um alle sonstigen von Website-Besuchern bereitgestellten Daten.</p>
+
+    <p>Rechtsgrundlage für die Verarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. a, b und f DSGVO</a> sowie <a href="https://www.gesetze-im-internet.de/tdddg/__25.html" target="_blank">§ 25 Abs. 1 TDDDG</a>, soweit die Einwilligung die Speicherung von Cookies oder den Zugriff auf Informationen im Endgerät des Website-Besuchers oder Nutzers im Sinne des TDDDG umfasst.</p>
+
+    <p>Dabei verarbeiten wir nur Daten, die zur Erfüllung unserer Serviceverpflichtung notwendig sind.</p>
+
+    <h3>2.9 Rechtsgrundlage</h3>
+
+    <p>Die Verarbeitung personenbezogener Daten bedarf immer einer Rechtsgrundlage. Die DSGVO sieht in <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 S. 1</a> folgende Möglichkeiten vor:</p>
+    <ul>
+        <li>a) Die betroffene Person hat ihre <strong>Einwilligung</strong> zu der Verarbeitung der sie betreffenden personenbezogenen Daten für einen oder mehrere bestimmte Zwecke gegeben;</li>
+        <li>b) die Verarbeitung ist für die <strong>Erfüllung eines Vertrags</strong>, dessen Vertragspartei die betroffene Person ist, oder zur Durchführung vorvertraglicher Maßnahmen erforderlich, die auf Anfrage der betroffenen Person erfolgen;</li>
+        <li>c) die Verarbeitung ist zur <strong>Erfüllung einer rechtlichen Verpflichtung</strong> erforderlich, der der Verantwortliche unterliegt;</li>
+        <li>d) die Verarbeitung ist erforderlich, um <strong>lebenswichtige Interessen</strong> der betroffenen Person oder einer anderen natürlichen Person zu schützen;</li>
+        <li>e) die Verarbeitung ist für die Wahrnehmung einer <strong>Aufgabe im öffentlichen Interesse</strong> oder in Ausübung öffentlicher Gewalt erforderlich, die dem Verantwortlichen übertragen wurde;</li>
+        <li>f) die Verarbeitung ist zur Wahrung der <strong>berechtigten Interessen</strong> des Verantwortlichen oder eines Dritten erforderlich, sofern nicht die Interessen oder Grundrechte und Grundfreiheiten der betroffenen Person, die den Schutz personenbezogener Daten erfordern, überwiegen, insbesondere dann, wenn es sich bei der betroffenen Person um ein Kind handelt.</li>
+    </ul>
+
+    <p>In den folgenden Abschnitten nennen wir Ihnen die konkrete Rechtsgrundlage für die jeweilige Verarbeitung.</p>
+
+    <h2>3. Was auf unserer Website geschieht</h2>
+
+    <p>Durch den Besuch unserer Website verarbeiten wir personenbezogene Daten von Ihnen.</p>
+
+    <p>Um diese Daten bestmöglich vor unbefugtem Zugriff Dritter zu schützen, verwenden wir eine SSL- bzw. TLS-Verschlüsselung. Sie erkennen diese verschlüsselte Verbindung daran, dass in der Adresszeile Ihres Browsers ein <span style="font-weight: bold;">https://</span> oder ein <span style="font-weight: bold;">Schloss-Symbol</span> angezeigt wird.</p>
+
+    <p>Im Folgenden erfahren Sie, welche Daten beim Aufruf unserer Website erhoben werden, zu welchem Zweck dies geschieht und auf welcher Rechtsgrundlage.</p>
+
+    <h3>3.1 Datenerfassung beim Aufruf der Website</h3>
+
+    <p>Durch den Aufruf der Website werden Informationen automatisch in sogenannten Server-Log-Dateien gespeichert. Dies sind folgende Informationen:</p>
+    <ul>
+        <li>Browsertyp und Browserversion</li>
+        <li>verwendetes Betriebssystem</li>
+        <li>Referrer URL</li>
+        <li>Hostname des zugreifenden Rechners</li>
+        <li>Zeitpunkt der Serveranfrage</li>
+        <li>IP-Adresse</li>
+    </ul>
+
+    <p>Diese Daten sind vorübergehend erforderlich, um Ihnen unsere Website dauerhaft und problemlos anzeigen zu können. Insbesondere dienen diese Daten folgenden Zwecken:</p>
+    <ul>
+        <li>Systemsicherheit der Website</li>
+        <li>Systemstabilität der Website</li>
+        <li>Fehlerbehebung der Website</li>
+        <li>Verbindung zur Website</li>
+        <li>Darstellung der Website</li>
+    </ul>
+
+    <p>Die Datenverarbeitung erfolgt gemäß <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. f DSGVO</a> und beruht auf unserem berechtigten Interesse an der Verarbeitung dieser Daten, insbesondere dem Interesse an der Funktionsfähigkeit der Website sowie deren Sicherheit.</p>
+
+    <p>Diese Daten werden, wenn möglich, pseudonymisiert gespeichert und nach Erreichung des jeweiligen Zwecks gelöscht.</p>
+
+    <p>Soweit die Server-Logfiles eine Identifizierung der betroffenen Person ermöglichen, werden die Daten für einen maximalen Zeitraum von 14 Tagen gespeichert. Eine Ausnahme besteht, wenn ein sicherheitsrelevantes Ereignis eintritt. In diesem Fall werden die Server-Logfiles bis zur Behebung und endgültigen Klärung des sicherheitsrelevanten Ereignisses gespeichert.</p>
+
+    <p>Im Übrigen findet eine Zusammenführung mit anderen Daten nicht statt.</p>
+
+    <h3>3.2 Cookies</h3>
+
+    <h4>3.2.1 Allgemeines</h4>
+
+    <p>Diese Website verwendet sogenannte Cookies. Hierbei handelt es sich um einen Datensatz, Informationen, die im Browser Ihres Endgeräts gespeichert werden und mit unserer Website in Verbindung stehen.</p>
+
+    <p>Durch das Setzen von Cookies kann insbesondere die Navigation der Website für den Besucher erleichtert werden.</p>
+
+    <h4>3.2.2 Cookies ablehnen</h4>
+
+    <p>Das Setzen von Cookies kann durch die Anpassung der Einstellungen Ihres Browsers verhindert werden.</p>
+
+    <p>Hier finden Sie die entsprechenden Links zu häufig verwendeten Browsern:</p>
+    <ul>
+        <li>Mozilla Firefox: <a href="https://support.mozilla.org/de/kb/cookies-und-website-daten-in-firefox-loschen?redirectslug=Cookies+l%C3%B6schen&redirectlocale=en" target="_blank">https://support.mozilla.org/de/kb/cookies-und-website-daten-in-firefox-loschen?redirectslug=Cookies+l%C3%B6schen&redirectlocale=en</a></li>
+        <li>Google Chrome: <a href="https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&hl=de" target="_blank">https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&hl=de</a></li>
+        <li>Microsoft Edge: <a href="https://support.microsoft.com/de-de/windows/l%C3%B6schen-und-verwalten-von-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank">https://support.microsoft.com/de-de/windows/l%C3%B6schen-und-verwalten-von-cookies-168dab11-0753-043d-7c16-ede5947fc64d</a></li>
+        <li>Safari: <a href="https://support.apple.com/de-de/guide/mdm/mdmf7d5714d4/web" target="_blank">https://support.apple.com/de-de/guide/mdm/mdmf7d5714d4/web</a> und <a href="https://support.apple.com/de-de/guide/safari/sfri11471/mac" target="_blank">https://support.apple.com/de-de/guide/safari/sfri11471/mac</a>. Soweit Sie einen anderen Browser verwenden, empfiehlt es sich, den Namen Ihres Browsers und „Cookies löschen und verwalten“ in einer Suchmaschine zu verwenden und dem offiziellen Link zu Ihrem Browser zu folgen.</li>
+    </ul>
+
+    <p>Alternativ können Sie Ihre Cookie-Einstellungen auch unter <a href="www.aboutads.info/choices/" target="_blank">www.aboutads.info/choices/</a> oder <a href="www.youronlinechoices.com" target="_blank">www.youronlinechoices.com</a> verwalten.</p>
+
+    <p>Wir weisen Sie jedoch darauf hin, dass eine umfassende Blockierung/Löschung von Cookies zu Beeinträchtigungen bei der Nutzung der Website führen kann.</p>
+
+    <h4>3.2.3 Technisch notwendige Cookies</h4>
+
+    <p>Wir verwenden auf dieser Website technisch notwendige Cookies, um sicherzustellen, dass unsere Website fehlerfrei und im Einklang mit den geltenden Gesetzen funktioniert. Sie tragen dazu bei, die Website nutzerfreundlich zu gestalten. Einige Funktionen unserer Website können ohne den Einsatz von Cookies nicht dargestellt werden.</p>
+
+    <p>Rechtsgrundlage hierfür ist, je nach Einzelfall, <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b, c und/oder f DSGVO</a>.</p>
+
+    <h3>3.3 Datenverarbeitung durch Nutzereingaben</h3>
+
+    <h4>3.3.1 Eigene Datenerhebung</h4>
+
+    <p>Wir bieten auf unserer Website die folgende (Dienstleistung) an: Bestenliste (Leaderboard).</p>
+
+    <p>Hierfür erheben wir die folgenden Daten:</p>
+    <ul>
+        <li>E-Mail-Adresse</li>
+    </ul>
+
+    <p>Rechtsgrundlage für diese Datenverarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b DSGVO</a>.</p>
+
+    <p>Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+    <h4>3.3.2 Kontakt</h4>
+
+    <h5>a) E-Mail</h5>
+    <p>Wenn Sie uns per E-Mail kontaktieren, verarbeiten wir Ihre E-Mail-Adresse und alle weiteren in der E-Mail enthaltenen Daten. Diese Daten werden auf dem Mailserver und teilweise auf den jeweiligen Endgeräten gespeichert. Je nach Anfrage ist die Rechtsgrundlage hierfür regelmäßig <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. f DSGVO</a> oder <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b DSGVO</a>. Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+    <h5>b) Telefon</h5>
+    <p>Wenn Sie uns telefonisch kontaktieren, können die Anrufdaten pseudonymisiert auf dem jeweiligen Endgerät und bei dem genutzten Telekommunikationsanbieter gespeichert werden. Im Rahmen des Telefonats erhobene personenbezogene Daten werden nur zur Bearbeitung Ihres Anliegens verarbeitet. Je nach Anfrage ist die Rechtsgrundlage hierfür regelmäßig <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. f DSGVO</a> oder <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b DSGVO</a>. Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+    <h5>c) Kontaktformular</h5>
+    <p>Wir bieten ein Kontaktformular an. Dieses dient der Kontaktaufnahme mit unserem Unternehmen.</p>
+    <p>In diesem Formular verarbeiten wir in der Regel Ihren Vor- und Nachnamen, Ihre Telefonnummer, Ihre E-Mail-Adresse, eine Postanschrift und den Inhalt der Nachricht. Die Daten werden auf unserem Webserver gespeichert und intern an die zuständigen E-Mail-Adressen weitergeleitet.</p>
+    <p>Rechtsgrundlage für die Datenverarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. f DSGVO</a>, da wir ein berechtigtes Interesse daran haben, Ihre Anfrage zu beantworten und eine unkomplizierte Kontaktaufnahme zu ermöglichen. Sofern die Kontaktaufnahme auf den Abschluss eines Vertrages abzielt, ist zusätzliche Rechtsgrundlage für die Verarbeitung <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b DSGVO</a>.</p>
+    <p>Wir löschen diese Daten spätestens 3 Monate nach Eingang, sofern sie nicht für ein entstandenes Vertragsverhältnis erforderlich sind.</p>
+    <p>Wir binden das Kontaktformular von</p>
+    <div class="contact-info">
+        <p><strong>Google Forms</strong></p>
+        <p>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland</p>
+        <p><a href="https://policies.google.com/privacy?hl=de" target="_blank">https://policies.google.com/privacy?hl=de</a></p>
+    </div>
+    <p>auf unserer Website ein.</p>
+
+    <h3>3.4 Mailing-Dienst</h3>
+
+    <h4>3.4.1 MailJet</h4>
+
+    <p>Wir verwenden MailJet als Mailing-Dienst. Dieser Dienst wird angeboten von Mailjet SAS, 4 rue Jules Lefebre, 75009 Paris – Frankreich. Mailjet ist ein Produkt von Sinch Email, <a href="www.sinch.com" target="_blank">www.sinch.com</a>.</p>
+
+    <p>MailJet ist ein E-Mail-Versanddienst.</p>
+
+    <p>Die Verarbeitung basiert entweder auf einer <strong>Einwilligung</strong> gemäß <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. a DSGVO</a>, soweit wir den Mailing-Dienst zur Kontaktaufnahme mit unseren Leads nutzen. Die Einwilligung kann jederzeit widerrufen werden.</p>
+
+    <p>Beim Versand von E-Mails zum konkreten Zweck der Vertragsanbahnung oder in einem bestehenden Vertragsverhältnis ist die Rechtsgrundlage für die Verarbeitung <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. b DSGVO</a>, da die genutzten Dienste der Kundenverwaltung und der Erfüllung unserer vertraglichen Leistung dienen.</p>
+
+    <p>Mailjet versichert, die Daten nur auf Servern in Deutschland und Belgien zu speichern.</p>
+
+    <p>Weitere Informationen zur Datenverarbeitung durch Mailjet sowie Antworten auf häufig gestellte Fragen zum Thema Sicherheit und Datenschutz finden Sie hier: <a href="https://www.mailjet.com/de/rechtliches/datenschutzerklaerung/" target="_blank">https://www.mailjet.com/de/rechtliches/datenschutzerklaerung/</a> und hier: <a href="https://www.mailjet.com/de/rechtliches/sicherheit-datenschutz/" target="_blank">https://www.mailjet.com/de/rechtliches/sicherheit-datenschutz/</a>.</p>
+
+    <h3>3.5 Inhalte Dritter</h3>
+
+    <h4>3.5.1 OpenStreetMap</h4>
+
+    <p>Wir verwenden auf dieser Website OpenStreetMap. OpenStreetMap ist ein Plugin, das die Einbindung von Kartenmaterial auf dieser Website ermöglicht. Dieser Dienst wird bereitgestellt von der OpenStreetMap Foundation, St John's Innovation Centre, Cowley Road, Cambridge, CB4 0WS, Vereinigtes Königreich.</p>
+
+    <p>Hierbei handelt es sich um ein gemeinschaftliches Projekt, das darauf abzielt, frei nutzbare geografische Daten, wie z. B. Straßenkarten, zu erstellen und anzubieten. Da es sich um ein Open-Source-Projekt handelt, werden die Daten von einer Gemeinschaft von Kartographen aus der ganzen Welt beigesteuert und aktualisiert. Diese Daten können für eine Vielzahl von Zwecken verwendet werden, von der Anzeige von Karten auf Websites bis hin zur Nutzung in GIS-Anwendungen, mobilen Apps und mehr.</p>
+
+    <p>Bei der Nutzung der Karten wird eine Verbindung zu den Servern der OpenStreetMap Foundation hergestellt. Hierbei handelt es sich nicht um Cookies, die zum Tracking von Website-Besuchern verwendet werden, sondern nur um solche, die auf die Funktionalität der Website beschränkt sind.</p>
+
+    <p>Rechtsgrundlage für die Verarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank">Art. 6 Abs. 1 lit. f DSGVO</a>. Wir haben ein berechtigtes Interesse an der Anzeige von Standorten oder der Bereitstellung geografischer Informationen.</p>
+
+    <p>Weitere Informationen:</p>
+    <p><a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank">https://wiki.osmfoundation.org/wiki/Privacy_Policy</a>.</p>
+
+    <h2>4. Das ist auch wichtig</h2>
+
+    <p>Abschließend möchten wir Sie noch detailliert über Ihre Rechte informieren und darüber, wie Sie über Änderungen der datenschutzrechtlichen Anforderungen informiert werden.</p>
+
+    <h3>4.1 Ihre Rechte im Detail</h3>
+
+    <p>Sie haben das Recht, gegenüber dem Verantwortlichen die folgenden Rechte geltend zu machen:</p>
+
+    <h4 class="list-item-title">4.1.1 Auskunftsrecht gemäß Art. 15 DSGVO</h4>
+    <p>Sie können Auskunft darüber verlangen, ob Ihre personenbezogenen Daten verarbeitet werden. Ist dies der Fall, können Sie weitere Auskünfte über Art und Weise der Verarbeitung verlangen. Eine detaillierte Aufzählung finden Sie in <a href="https://dsgvo-gesetz.de/art-15-dsgvo/" target="_blank">Art. 15 Abs. 1 a) bis h) DSGVO</a>.</p>
+
+    <h4 class="list-item-title">4.1.2 Recht auf Berichtigung gemäß Art. 16 DSGVO</h4>
+    <p>Dieses Recht umfasst die Berichtigung unrichtiger Daten und die Vervollständigung unvollständiger personenbezogener Daten.</p>
+
+    <h4 class="list-item-title">4.1.3 Recht auf Löschung gemäß Art. 17 DSGVO</h4>
+    <p>Dieses sogenannte „Recht auf Vergessenwerden“ gibt Ihnen unter bestimmten Voraussetzungen das Recht, die Löschung personenbezogener Daten durch den Verantwortlichen zu verlangen. Dies ist in der Regel der Fall, wenn der Zweck der Datenverarbeitung entfallen ist, eine Einwilligung widerrufen wurde oder die anfängliche Verarbeitung ohne Rechtsgrundlage erfolgte. Eine detaillierte Aufzählung der Gründe finden Sie in <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank">Art. 17 Abs. 1 lit. a bis f DSGVO</a>. Des Weiteren korrespondiert dieses „Recht auf Vergessenwerden“ mit der Pflicht des Verantwortlichen gemäß <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank">Art. 17 Abs. 2 DSGVO</a>, angemessene Maßnahmen zu treffen, um eine generelle Löschung der Daten herbeizuführen.</p>
+
+    <h4 class="list-item-title">4.1.4 Recht auf Einschränkung der Verarbeitung gemäß Art. 18 DSGVO</h4>
+    <p>Dieses Recht unterliegt den in <a href="https://dsgvo-gesetz.de/art-18-dsgvo/" target="_blank">Art. 18 Abs. 1 lit. a bis d</a> genannten Voraussetzungen.</p>
+
+    <h4 class="list-item-title">4.1.5 Recht auf Datenübertragbarkeit gemäß Art. 20 DSGVO</h4>
+    <p>Hier wird das Grundrecht geregelt, die eigenen Daten in einer gängigen Form zu erhalten und diese an einen anderen Verantwortlichen zu übermitteln. Dies gilt jedoch nur für Daten, die aufgrund einer Einwilligung oder eines Vertrages gemäß <a href="https://dsgvo-gesetz.de/art-20-dsgvo/" target="_blank">Art. 20 Abs. 1 a) und b)</a> verarbeitet werden und soweit dies technisch machbar ist.</p>
+
+    <h4 class="list-item-title">4.1.6 Widerspruchsrecht gemäß Art. 21 DSGVO</h4>
+    <p>Sie können der Verarbeitung Ihrer personenbezogenen Daten grundsätzlich widersprechen. Dies gilt insbesondere, wenn Ihr Interesse am Widerspruch das berechtigte Interesse des Verantwortlichen an der Verarbeitung überwiegt und wenn sich die Verarbeitung auf Direktwerbung und/oder Profiling bezieht.</p>
+
+    <h4 class="list-item-title">4.1.7 Recht auf „Entscheidung im Einzelfall“ gemäß Art. 22 DSGVO</h4>
+    <p>Sie haben grundsätzlich das Recht, nicht einer ausschließlich auf einer automatisierten Verarbeitung – einschließlich Profiling – beruhenden Entscheidung unterworfen zu werden, die Ihnen gegenüber rechtliche Wirkung entfaltet oder Sie in ähnlicher Weise erheblich beeinträchtigt. Dieses Recht unterliegt jedoch auch Einschränkungen und Ergänzungen in <a href="https://dsgvo-gesetz.de/art-22-dsgvo/" target="_blank">Art. 22 Abs. 2 und 4 DSGVO</a>.</p>
+
+    <h4 class="list-item-title">4.1.8 Sonstige Rechte</h4>
+    <p>Die DSGVO enthält umfassende Rechte, Dritte darüber zu informieren, ob bzw. wie Sie Rechte nach Art. 16, 17, 18 DSGVO geltend gemacht haben. Dies gilt jedoch nur, soweit dies möglich oder mit vertretbarem Aufwand umsetzbar ist.</p>
+
+    <p>An dieser Stelle möchten wir Sie noch einmal auf Ihr Recht auf Widerruf der Einwilligung gemäß <a href="https://dsgvo-gesetz.de/art-7-dsgvo/" target="_blank">Art. 7 Abs. 3 DSGVO</a> hinweisen. Dies berührt jedoch nicht die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung.</p>
+
+    <p>Zudem möchten wir Sie über Ihre Rechte gemäß <a href="https://www.gesetze-im-internet.de/bdsg_2018/__32.html" target="_blank">§§ 32 ff. BDSG</a> informieren, die jedoch größtenteils mit den soeben beschriebenen Rechten kongruent sind.</p>
+
+    <h4 class="list-item-title">4.1.9 Beschwerderecht gemäß Art. 77 DSGVO</h4>
+    <p>Sie haben außerdem das Recht, bei einer Datenschutz-Aufsichtsbehörde Beschwerde einzulegen, wenn Sie der Ansicht sind, dass die Verarbeitung der Sie betreffenden personenbezogenen Daten gegen diese Verordnung verstößt.</p>
+
+    <h2>5. Was ist, wenn morgen die DSGVO abgeschafft wird oder andere Änderungen eintreten?</h2>
+
+    <p>Der aktuelle Stand dieser Datenschutzerklärung ist der 13.12.2025. Von Zeit zu Zeit ist es notwendig, den Inhalt der Datenschutzerklärung anzupassen, um auf tatsächliche und rechtliche Änderungen zu reagieren. Wir behalten uns daher vor, diese Datenschutzerklärung jederzeit zu ändern. Die geänderte Fassung werden wir an gleicher Stelle veröffentlichen und empfehlen Ihnen, die Datenschutzerklärung regelmäßig zu lesen.</p>
+
 </body>
 </html>

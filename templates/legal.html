@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .separator {
+            font-size: large;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 0.25rem;
+            text-align: center;
+        }
+        .name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            text-align: center;
+        }
+        .address {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gray-800 rounded-lg shadow-xl p-8 max-w-4xl w-full border normal" id="container">
+        <h1 class="text-5xl font-bold text-center mb-6 text-blue-400">Klima Guessr</h1>
+
+        <div id="lobbycode" class="text-3xl font-bold text-center mb-6 text-blue-400 hidden">
+            <button class="button" style="box-shadow: none;">
+                <img src="settings.png" alt="Settings" class="w-10 h-10">
+            </button>
+            <div id="rounds-input-container2" class="mb-4 hidden">
+                <label for="rounds-input2" class="block text-gray-300 text-sm font-bold mb-2">Number of Rounds:</label>
+                <input type="number" id="rounds-input2" value="5" min="1" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+
+            <div id="time-limit-container2" class="mb-6 hidden">
+                <label for="time-limit-input2" class="block text-gray-300 text-sm font-bold mb-2">Time Limit (seconds per round):</label><label class="switch">
+                    <input type="checkbox" id="time-limit-switch2">
+                    <span class="slider"></span>
+                </label>
+                
+                <input type="number" id="time-limit-inptu2" value="60" min="10" max="180" class="hidden shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500">
+            </div>
+            <h1 id="lobbycodedisplay" class="text-3xl font-bold text-center mb-6 text-white"></h1>
+            <h2 id="players" class="text-3xl font-bold text-center mb-6 text-white">Players:</h2>
+            <button id="startgame-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">Start</button>
+        </div>
+
+        <div id="messagedisplay" class="text-3xl font-bold text-center mb-6 text-blue-400">
+            <h2 id="message" class="text-3xl font-bold text-center mb-6 text-white"></h2>
+        </div>
+
+        <div id="Navigation" class="flex justify-center mb-6">
+            <button id="impressum-tab" class="tab-button px-6 py-3 rounded-l-lg font-semibold text-lg transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Impressum
+            </button>
+            <button id="Datenschutz-tab" class="tab-button px-6 py-3 rounded-r-lg font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Datenschutz
+            </button>
+        </div>
+
+        <div id="impressum-content" class="tab-content active text-lg leading-relaxed">
+            <p class="separator">Inhaber</p>
+            <p class="name">Jannik Hinkelmann</p>
+            <p class="address">Friedensallee 363</p>
+            <p class="address">22763 Hamburg</p>
+            <p class="address">Deutschland</p>
+
+            <p class="separator">Kontakt</p>
+            <p class="address">E-Mail: jannik.hinkelmann@gmx.de</p>
+            <p class="address">Telefon: +49 176 12345678</p>
+        </div>
+
+        <div id="legacy-content" class="tab-content">
+            <div class="mb-4">
+                <button id="start-legacy-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
+                    Start Game
+                </button>
+            </div>
+        </div>
+
+        <div id="Datenschutz-content" class="tab-content text-base leading-relaxed overflow-y-auto max-h-96">
+            <h1 class="text-3xl font-bold mb-4">Datenschutzerklärung</h1>
+                <div>
+                    <h2 class="text-2xl font-bold mt-6 mb-3">1. Einleitung</h2>
+
+                    <p class="mb-3">Diese Website wird betrieben von: Jannik Hinkelmann.</p>
+
+                    <p class="mb-3">Es ist uns sehr wichtig, mit den Daten unserer Website-Besucher vertrauensvoll umzugehen und diese bestmöglich zu schützen. Aus diesem Grund sind wir sehr bemüht, die Anforderungen der DSGVO zu erfüllen.</p>
+
+                    <p class="mb-3">Im Folgenden erklären wir, wie wir Ihre Daten auf unserer Website verarbeiten. Wir verwenden eine möglichst klare und transparente Sprache, damit Sie wirklich verstehen, was mit Ihren Daten geschieht.</p>
+
+                    <h2 class="text-2xl font-bold mt-6 mb-3">2. Allgemeine Informationen</h2>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.1 Verarbeitung personenbezogener Daten und andere Begriffe</h3>
+
+                    <p class="mb-3">Der Datenschutz gilt für die Verarbeitung personenbezogener Daten. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können. Dies ist beispielsweise die IP-Adresse des Geräts (PC, Laptop, Smartphone, etc.), vor dem Sie gerade sitzen. Solche Daten werden verarbeitet, wenn 'etwas damit passiert'. Hier wird z.B. die IP-Adresse vom Browser an unseren Provider übermittelt und dort automatisch gespeichert. Dies ist dann eine Verarbeitung (gemäß Art. 4 Nr. 2 DSGVO) personenbezogener Daten (gemäß Art. 4 Nr. 1 DSGVO).</p>
+
+                    <p class="mb-3">Diese und weitere Legaldefinitionen finden Sie in <a href="https://dsgvo-gesetz.de/art-4-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 4 DSGVO</a>.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.2 Anwendbare Vorschriften/Gesetze – DSGVO, BDSG und TDDDG</h3>
+
+                    <p class="mb-3">Der Umfang des Datenschutzes ist gesetzlich geregelt. Dies sind in diesem Fall die <a href="https://dsgvo-gesetz.de/" target="_blank" class="text-blue-400 hover:text-blue-300">DSGVO</a> (Datenschutz-Grundverordnung) als europäische Verordnung und das <a href="https://www.gesetze-im-internet.de/bdsg_2018/" target="_blank" class="text-blue-400 hover:text-blue-300">BDSG</a> (Bundesdatenschutzgesetz) als nationales Gesetz.</p>
+
+                    <p class="mb-3">Ergänzend zur DSGVO ergänzt das <a href="https://www.gesetze-im-internet.de/tdddg/" target="_blank" class="text-blue-400 hover:text-blue-300">TDDDG</a> die Bestimmungen, soweit es die Verwendung von Cookies betrifft.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.3 Der Verantwortliche</h3>
+
+                    <p class="mb-3">Der Verantwortliche im Sinne der DSGVO ist für die Datenverarbeitung auf dieser Website verantwortlich. Dies ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten entscheidet.</p>
+
+                    <p class="mb-3">Sie erreichen den Verantwortlichen unter:</p>
+                    <div class="contact-info mb-3">
+                        <p>Jannik Hinkelmann</p>
+                        <p>Climate measurement</p>
+                        <p>email@email.com</p>
+                    </div>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.4 So werden Daten auf dieser Website grundsätzlich verarbeitet</h3>
+
+                    <p class="mb-3">Wie wir bereits festgestellt haben, gibt es Daten (z.B. IP-Adresse), die automatisch erhoben werden. Diese Daten sind hauptsächlich für die technische Bereitstellung der Website erforderlich. Wenn wir darüber hinaus personenbezogene Daten verwenden oder andere Daten erheben, werden wir Sie darüber informieren oder um Ihre Einwilligung bitten.</p>
+
+                    <p class="mb-3">Andere personenbezogene Daten teilen Sie uns bewusst mit.</p>
+
+                    <p class="mb-3">Detailliertere Informationen dazu finden Sie weiter unten.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.5 Ihre Rechte</h3>
+
+                    <p class="mb-3">Die DSGVO gewährt Ihnen umfassende Rechte. Dazu gehört beispielsweise die unentgeltliche Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten. Sie können auch die Berichtigung, Sperrung oder Löschung dieser Daten verlangen oder eine Beschwerde bei der zuständigen Datenschutz-Aufsichtsbehörde einlegen. Ihre Einwilligung können Sie jederzeit widerrufen.</p>
+
+                    <p class="mb-3">Was diese Rechte im Detail sind und wie Sie sie ausüben können, erfahren Sie im letzten Abschnitt dieser Datenschutzerklärung.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.6 Datenschutz – Unsere Sicht</h3>
+
+                    <p class="mb-3">Datenschutz ist für uns mehr als nur eine lästige Pflicht! Personenbezogene Daten sind von großem Wert und der sorgfältige Umgang mit diesen Daten sollte in unserer digitalisierten Welt selbstverständlich sein. Zudem sollen Sie als Website-Besucher selbst entscheiden können, was wann und von wem mit Ihren Daten "passiert". Deshalb verpflichten wir uns, alle gesetzlichen Bestimmungen einzuhalten, nur die für uns notwendigen Daten zu erheben und diese selbstverständlich vertraulich zu behandeln.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.7 Weitergabe und Löschung</h3>
+
+                    <p class="mb-3">Die Weitergabe und Löschung von Daten sind ebenfalls wichtige und sensible Themen. Deshalb möchten wir Sie vorab kurz über unser allgemeines Vorgehen informieren.</p>
+
+                    <p class="mb-3">Eine Weitergabe von Daten erfolgt nur aufgrund einer gesetzlichen Grundlage und nur, wenn dies unvermeidbar ist. Dies kann insbesondere der Fall sein, wenn es sich um einen sogenannten Auftragsverarbeiter handelt und eine Auftragsverarbeitungsvereinbarung gemäß Art. 28 DSGVO abgeschlossen wurde.</p>
+
+                    <p class="mb-3">Wir löschen Ihre Daten, wenn der Zweck und die Rechtsgrundlage für die Verarbeitung entfallen und der Löschung keine sonstigen gesetzlichen Pflichten entgegenstehen. Einen „guten" Überblick darüber bietet auch <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 17 DSGVO</a>.</p>
+
+                    <p class="mb-3">Weitere Informationen entnehmen Sie bitte dieser Datenschutzerklärung und wenden Sie sich bei konkreten Fragen an den Verantwortlichen.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.8 Hosting</h3>
+
+                    <p class="mb-3">Diese Website wird auf unseren eigenen Servern gehostet. Wir speichern die auf dieser Website erhobenen personenbezogenen Daten auf unseren Servern. Hierbei handelt es sich zum einen um die automatisch erhobenen und gespeicherten Logfiles (Details dazu siehe unten), als auch um alle sonstigen von Website-Besuchern bereitgestellten Daten.</p>
+
+                    <p class="mb-3">Rechtsgrundlage für die Verarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. a, b und f DSGVO</a> sowie <a href="https://www.gesetze-im-internet.de/tdddg/__25.html" target="_blank" class="text-blue-400 hover:text-blue-300">§ 25 Abs. 1 TDDDG</a>, soweit die Einwilligung die Speicherung von Cookies oder den Zugriff auf Informationen im Endgerät des Website-Besuchers oder Nutzers im Sinne des TDDDG umfasst.</p>
+
+                    <p class="mb-3">Dabei verarbeiten wir nur Daten, die zur Erfüllung unserer Serviceverpflichtung notwendig sind.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">2.9 Rechtsgrundlage</h3>
+
+                    <p class="mb-3">Die Verarbeitung personenbezogener Daten bedarf immer einer Rechtsgrundlage. Die DSGVO sieht in <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 S. 1</a> folgende Möglichkeiten vor:</p>
+                    <ul class="list-disc list-inside mb-3 space-y-1">
+                        <li>a) Die betroffene Person hat ihre <strong>Einwilligung</strong> zu der Verarbeitung der sie betreffenden personenbezogenen Daten für einen oder mehrere bestimmte Zwecke gegeben;</li>
+                        <li>b) die Verarbeitung ist für die <strong>Erfüllung eines Vertrags</strong>, dessen Vertragspartei die betroffene Person ist, oder zur Durchführung vorvertraglicher Maßnahmen erforderlich, die auf Anfrage der betroffenen Person erfolgen;</li>
+                        <li>c) die Verarbeitung ist zur <strong>Erfüllung einer rechtlichen Verpflichtung</strong> erforderlich, der der Verantwortliche unterliegt;</li>
+                        <li>d) die Verarbeitung ist erforderlich, um <strong>lebenswichtige Interessen</strong> der betroffenen Person oder einer anderen natürlichen Person zu schützen;</li>
+                        <li>e) die Verarbeitung ist für die Wahrnehmung einer <strong>Aufgabe im öffentlichen Interesse</strong> oder in Ausübung öffentlicher Gewalt erforderlich, die dem Verantwortlichen übertragen wurde;</li>
+                        <li>f) die Verarbeitung ist zur Wahrung der <strong>berechtigten Interessen</strong> des Verantwortlichen oder eines Dritten erforderlich, sofern nicht die Interessen oder Grundrechte und Grundfreiheiten der betroffenen Person, die den Schutz personenbezogener Daten erfordern, überwiegen, insbesondere dann, wenn es sich bei der betroffenen Person um ein Kind handelt.</li>
+                    </ul>
+
+                    <p class="mb-3">In den folgenden Abschnitten nennen wir Ihnen die konkrete Rechtsgrundlage für die jeweilige Verarbeitung.</p>
+
+                    <h2 class="text-2xl font-bold mt-6 mb-3">3. Was auf unserer Website geschieht</h2>
+
+                    <p class="mb-3">Durch den Besuch unserer Website verarbeiten wir personenbezogene Daten von Ihnen.</p>
+
+                    <p class="mb-3">Um diese Daten bestmöglich vor unbefugtem Zugriff Dritter zu schützen, verwenden wir eine SSL- bzw. TLS-Verschlüsselung. Sie erkennen diese verschlüsselte Verbindung daran, dass in der Adresszeile Ihres Browsers ein <span style="font-weight: bold;">https://</span> oder ein <span style="font-weight: bold;">Schloss-Symbol</span> angezeigt wird.</p>
+
+                    <p class="mb-3">Im Folgenden erfahren Sie, welche Daten beim Aufruf unserer Website erhoben werden, zu welchem Zweck dies geschieht und auf welcher Rechtsgrundlage.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">3.1 Datenerfassung beim Aufruf der Website</h3>
+
+                    <p class="mb-3">Durch den Aufruf der Website werden Informationen automatisch in sogenannten Server-Log-Dateien gespeichert. Dies sind folgende Informationen:</p>
+                    <ul class="list-disc list-inside mb-3 space-y-1">
+                        <li>Browsertyp und Browserversion</li>
+                        <li>verwendetes Betriebssystem</li>
+                        <li>Referrer URL</li>
+                        <li>Hostname des zugreifenden Rechners</li>
+                        <li>Zeitpunkt der Serveranfrage</li>
+                        <li>IP-Adresse</li>
+                    </ul>
+
+                    <p class="mb-3">Diese Daten sind vorübergehend erforderlich, um Ihnen unsere Website dauerhaft und problemlos anzeigen zu können. Insbesondere dienen diese Daten folgenden Zwecken:</p>
+                    <ul class="list-disc list-inside mb-3 space-y-1">
+                        <li>Systemsicherheit der Website</li>
+                        <li>Systemstabilität der Website</li>
+                        <li>Fehlerbehebung der Website</li>
+                        <li>Verbindung zur Website</li>
+                        <li>Darstellung der Website</li>
+                    </ul>
+
+                    <p class="mb-3">Die Datenverarbeitung erfolgt gemäß <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. f DSGVO</a> und beruht auf unserem berechtigten Interesse an der Verarbeitung dieser Daten, insbesondere dem Interesse an der Funktionsfähigkeit der Website sowie deren Sicherheit.</p>
+
+                    <p class="mb-3">Diese Daten werden, wenn möglich, pseudonymisiert gespeichert und nach Erreichung des jeweiligen Zwecks gelöscht.</p>
+
+                    <p class="mb-3">Soweit die Server-Logfiles eine Identifizierung der betroffenen Person ermöglichen, werden die Daten für einen maximalen Zeitraum von 14 Tagen gespeichert. Eine Ausnahme besteht, wenn ein sicherheitsrelevantes Ereignis eintritt. In diesem Fall werden die Server-Logfiles bis zur Behebung und endgültigen Klärung des sicherheitsrelevanten Ereignisses gespeichert.</p>
+
+                    <p class="mb-3">Im Übrigen findet eine Zusammenführung mit anderen Daten nicht statt.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">3.2 Cookies</h3>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.2.1 Allgemeines</h4>
+
+                    <p class="mb-3">Diese Website verwendet sogenannte Cookies. Hierbei handelt es sich um einen Datensatz, Informationen, die im Browser Ihres Endgeräts gespeichert werden und mit unserer Website in Verbindung stehen.</p>
+
+                    <p class="mb-3">Durch das Setzen von Cookies kann insbesondere die Navigation der Website für den Besucher erleichtert werden.</p>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.2.2 Cookies ablehnen</h4>
+
+                    <p class="mb-3">Das Setzen von Cookies kann durch die Anpassung der Einstellungen Ihres Browsers verhindert werden.</p>
+
+                    <p class="mb-3">Hier finden Sie die entsprechenden Links zu häufig verwendeten Browsern:</p>
+                    <ul class="list-disc list-inside mb-3 space-y-1">
+                        <li>Mozilla Firefox: <a href="https://support.mozilla.org/de/kb/cookies-und-website-daten-in-firefox-loschen?redirectslug=Cookies+l%C3%B6schen&redirectlocale=en" target="_blank" class="text-blue-400 hover:text-blue-300">https://support.mozilla.org/de/kb/cookies-und-website-daten-in-firefox-loschen?redirectslug=Cookies+l%C3%B6schen&redirectlocale=en</a></li>
+                        <li>Google Chrome: <a href="https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&hl=de" target="_blank" class="text-blue-400 hover:text-blue-300">https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&hl=de</a></li>
+                        <li>Microsoft Edge: <a href="https://support.microsoft.com/de-de/windows/l%C3%B6schen-und-verwalten-von-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" class="text-blue-400 hover:text-blue-300">https://support.microsoft.com/de-de/windows/l%C3%B6schen-und-verwalten-von-cookies-168dab11-0753-043d-7c16-ede5947fc64d</a></li>
+                        <li>Safari: <a href="https://support.apple.com/de-de/guide/mdm/mdmf7d5714d4/web" target="_blank" class="text-blue-400 hover:text-blue-300">https://support.apple.com/de-de/guide/mdm/mdmf7d5714d4/web</a> und <a href="https://support.apple.com/de-de/guide/safari/sfri11471/mac" target="_blank" class="text-blue-400 hover:text-blue-300">https://support.apple.com/de-de/guide/safari/sfri11471/mac</a>. Soweit Sie einen anderen Browser verwenden, empfiehlt es sich, den Namen Ihres Browsers und „Cookies löschen und verwalten" in einer Suchmaschine zu verwenden und dem offiziellen Link zu Ihrem Browser zu folgen.</li>
+                    </ul>
+
+                    <p class="mb-3">Alternativ können Sie Ihre Cookie-Einstellungen auch unter <a href="www.aboutads.info/choices/" target="_blank" class="text-blue-400 hover:text-blue-300">www.aboutads.info/choices/</a> oder <a href="www.youronlinechoices.com" target="_blank" class="text-blue-400 hover:text-blue-300">www.youronlinechoices.com</a> verwalten.</p>
+
+                    <p class="mb-3">Wir weisen Sie jedoch darauf hin, dass eine umfassende Blockierung/Löschung von Cookies zu Beeinträchtigungen bei der Nutzung der Website führen kann.</p>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.2.3 Technisch notwendige Cookies</h4>
+
+                    <p class="mb-3">Wir verwenden auf dieser Website technisch notwendige Cookies, um sicherzustellen, dass unsere Website fehlerfrei und im Einklang mit den geltenden Gesetzen funktioniert. Sie tragen dazu bei, die Website nutzerfreundlich zu gestalten. Einige Funktionen unserer Website können ohne den Einsatz von Cookies nicht dargestellt werden.</p>
+
+                    <p class="mb-3">Rechtsgrundlage hierfür ist, je nach Einzelfall, <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b, c und/oder f DSGVO</a>.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">3.3 Datenverarbeitung durch Nutzereingaben</h3>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.3.1 Eigene Datenerhebung</h4>
+
+                    <p class="mb-3">Wir bieten auf unserer Website die folgende (Dienstleistung) an: Bestenliste (Leaderboard).</p>
+
+                    <p class="mb-3">Hierfür erheben wir die folgenden Daten:</p>
+                    <ul class="list-disc list-inside mb-3 space-y-1">
+                        <li>E-Mail-Adresse</li>
+                    </ul>
+
+                    <p class="mb-3">Rechtsgrundlage für diese Datenverarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b DSGVO</a>.</p>
+
+                    <p class="mb-3">Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.3.2 Kontakt</h4>
+
+                    <h5 class="font-bold mt-2 mb-2">a) E-Mail</h5>
+                    <p class="mb-3">Wenn Sie uns per E-Mail kontaktieren, verarbeiten wir Ihre E-Mail-Adresse und alle weiteren in der E-Mail enthaltenen Daten. Diese Daten werden auf dem Mailserver und teilweise auf den jeweiligen Endgeräten gespeichert. Je nach Anfrage ist die Rechtsgrundlage hierfür regelmäßig <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. f DSGVO</a> oder <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b DSGVO</a>. Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+                    <h5 class="font-bold mt-2 mb-2">b) Telefon</h5>
+                    <p class="mb-3">Wenn Sie uns telefonisch kontaktieren, können die Anrufdaten pseudonymisiert auf dem jeweiligen Endgerät und bei dem genutzten Telekommunikationsanbieter gespeichert werden. Im Rahmen des Telefonats erhobene personenbezogene Daten werden nur zur Bearbeitung Ihres Anliegens verarbeitet. Je nach Anfrage ist die Rechtsgrundlage hierfür regelmäßig <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. f DSGVO</a> oder <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b DSGVO</a>. Die Daten werden gelöscht, sobald der jeweilige Zweck entfällt und es nach den gesetzlichen Bestimmungen möglich ist.</p>
+
+                    <h5 class="font-bold mt-2 mb-2">c) Kontaktformular</h5>
+                    <p class="mb-3">Wir bieten ein Kontaktformular an. Dieses dient der Kontaktaufnahme mit unserem Unternehmen.</p>
+                    <p class="mb-3">In diesem Formular verarbeiten wir in der Regel Ihren Vor- und Nachnamen, Ihre Telefonnummer, Ihre E-Mail-Adresse, eine Postanschrift und den Inhalt der Nachricht. Die Daten werden auf unserem Webserver gespeichert und intern an die zuständigen E-Mail-Adressen weitergeleitet.</p>
+                    <p class="mb-3">Rechtsgrundlage für die Datenverarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. f DSGVO</a>, da wir ein berechtigtes Interesse daran haben, Ihre Anfrage zu beantworten und eine unkomplizierte Kontaktaufnahme zu ermöglichen. Sofern die Kontaktaufnahme auf den Abschluss eines Vertrages abzielt, ist zusätzliche Rechtsgrundlage für die Verarbeitung <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b DSGVO</a>.</p>
+                    <p class="mb-3">Wir löschen diese Daten spätestens 3 Monate nach Eingang, sofern sie nicht für ein entstandenes Vertragsverhältnis erforderlich sind.</p>
+                    <p class="mb-3">Wir binden das Kontaktformular von</p>
+                    <div class="contact-info mb-3">
+                        <p><strong>Google Forms</strong></p>
+                        <p>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland</p>
+                        <p><a href="https://policies.google.com/privacy?hl=de" target="_blank" class="text-blue-400 hover:text-blue-300">https://policies.google.com/privacy?hl=de</a></p>
+                    </div>
+                    <p class="mb-3">auf unserer Website ein.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">3.4 Mailing-Dienst</h3>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.4.1 MailJet</h4>
+
+                    <p class="mb-3">Wir verwenden MailJet als Mailing-Dienst. Dieser Dienst wird angeboten von Mailjet SAS, 4 rue Jules Lefebre, 75009 Paris – Frankreich. Mailjet ist ein Produkt von Sinch Email, <a href="www.sinch.com" target="_blank" class="text-blue-400 hover:text-blue-300">www.sinch.com</a>.</p>
+
+                    <p class="mb-3">MailJet ist ein E-Mail-Versanddienst.</p>
+
+                    <p class="mb-3">Die Verarbeitung basiert entweder auf einer <strong>Einwilligung</strong> gemäß <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. a DSGVO</a>, soweit wir den Mailing-Dienst zur Kontaktaufnahme mit unseren Leads nutzen. Die Einwilligung kann jederzeit widerrufen werden.</p>
+
+                    <p class="mb-3">Beim Versand von E-Mails zum konkreten Zweck der Vertragsanbahnung oder in einem bestehenden Vertragsverhältnis ist die Rechtsgrundlage für die Verarbeitung <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. b DSGVO</a>, da die genutzten Dienste der Kundenverwaltung und der Erfüllung unserer vertraglichen Leistung dienen.</p>
+
+                    <p class="mb-3">Mailjet versichert, die Daten nur auf Servern in Deutschland und Belgien zu speichern.</p>
+
+                    <p class="mb-3">Weitere Informationen zur Datenverarbeitung durch Mailjet sowie Antworten auf häufig gestellte Fragen zum Thema Sicherheit und Datenschutz finden Sie hier: <a href="https://www.mailjet.com/de/rechtliches/datenschutzerklaerung/" target="_blank" class="text-blue-400 hover:text-blue-300">https://www.mailjet.com/de/rechtliches/datenschutzerklaerung/</a> und hier: <a href="https://www.mailjet.com/de/rechtliches/sicherheit-datenschutz/" target="_blank" class="text-blue-400 hover:text-blue-300">https://www.mailjet.com/de/rechtliches/sicherheit-datenschutz/</a>.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">3.5 Inhalte Dritter</h3>
+
+                    <h4 class="text-lg font-bold mt-3 mb-2">3.5.1 OpenStreetMap</h4>
+
+                    <p class="mb-3">Wir verwenden auf dieser Website OpenStreetMap. OpenStreetMap ist ein Plugin, das die Einbindung von Kartenmaterial auf dieser Website ermöglicht. Dieser Dienst wird bereitgestellt von der OpenStreetMap Foundation, St John's Innovation Centre, Cowley Road, Cambridge, CB4 0WS, Vereinigtes Königreich.</p>
+
+                    <p class="mb-3">Hierbei handelt es sich um ein gemeinschaftliches Projekt, das darauf abzielt, frei nutzbare geografische Daten, wie z. B. Straßenkarten, zu erstellen und anzubieten. Da es sich um ein Open-Source-Projekt handelt, werden die Daten von einer Gemeinschaft von Kartographen aus der ganzen Welt beigesteuert und aktualisiert. Diese Daten können für eine Vielzahl von Zwecken verwendet werden, von der Anzeige von Karten auf Websites bis hin zur Nutzung in GIS-Anwendungen, mobilen Apps und mehr.</p>
+
+                    <p class="mb-3">Bei der Nutzung der Karten wird eine Verbindung zu den Servern der OpenStreetMap Foundation hergestellt. Hierbei handelt es sich nicht um Cookies, die zum Tracking von Website-Besuchern verwendet werden, sondern nur um solche, die auf die Funktionalität der Website beschränkt sind.</p>
+
+                    <p class="mb-3">Rechtsgrundlage für die Verarbeitung ist <a href="https://dsgvo-gesetz.de/art-6-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 6 Abs. 1 lit. f DSGVO</a>. Wir haben ein berechtigtes Interesse an der Anzeige von Standorten oder der Bereitstellung geografischer Informationen.</p>
+
+                    <p class="mb-3">Weitere Informationen:</p>
+                    <p class="mb-3"><a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" class="text-blue-400 hover:text-blue-300">https://wiki.osmfoundation.org/wiki/Privacy_Policy</a>.</p>
+
+                    <h2 class="text-2xl font-bold mt-6 mb-3">4. Das ist auch wichtig</h2>
+
+                    <p class="mb-3">Abschließend möchten wir Sie noch detailliert über Ihre Rechte informieren und darüber, wie Sie über Änderungen der datenschutzrechtlichen Anforderungen informiert werden.</p>
+
+                    <h3 class="text-xl font-bold mt-4 mb-2">4.1 Ihre Rechte im Detail</h3>
+
+                    <p class="mb-3">Sie haben das Recht, gegenüber dem Verantwortlichen die folgenden Rechte geltend zu machen:</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.1 Auskunftsrecht gemäß Art. 15 DSGVO</h4>
+                    <p class="mb-3">Sie können Auskunft darüber verlangen, ob Ihre personenbezogenen Daten verarbeitet werden. Ist dies der Fall, können Sie weitere Auskünfte über Art und Weise der Verarbeitung verlangen. Eine detaillierte Aufzählung finden Sie in <a href="https://dsgvo-gesetz.de/art-15-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 15 Abs. 1 a) bis h) DSGVO</a>.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.2 Recht auf Berichtigung gemäß Art. 16 DSGVO</h4>
+                    <p class="mb-3">Dieses Recht umfasst die Berichtigung unrichtiger Daten und die Vervollständigung unvollständiger personenbezogener Daten.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.3 Recht auf Löschung gemäß Art. 17 DSGVO</h4>
+                    <p class="mb-3">Dieses sogenannte „Recht auf Vergessenwerden" gibt Ihnen unter bestimmten Voraussetzungen das Recht, die Löschung personenbezogener Daten durch den Verantwortlichen zu verlangen. Dies ist in der Regel der Fall, wenn der Zweck der Datenverarbeitung entfallen ist, eine Einwilligung widerrufen wurde oder die anfängliche Verarbeitung ohne Rechtsgrundlage erfolgte. Eine detaillierte Aufzählung der Gründe finden Sie in <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 17 Abs. 1 lit. a bis f DSGVO</a>. Des Weiteren korrespondiert dieses „Recht auf Vergessenwerden" mit der Pflicht des Verantwortlichen gemäß <a href="https://dsgvo-gesetz.de/art-17-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 17 Abs. 2 DSGVO</a>, angemessene Maßnahmen zu treffen, um eine generelle Löschung der Daten herbeizuführen.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.4 Recht auf Einschränkung der Verarbeitung gemäß Art. 18 DSGVO</h4>
+                    <p class="mb-3">Dieses Recht unterliegt den in <a href="https://dsgvo-gesetz.de/art-18-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 18 Abs. 1 lit. a bis d</a> genannten Voraussetzungen.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.5 Recht auf Datenübertragbarkeit gemäß Art. 20 DSGVO</h4>
+                    <p class="mb-3">Hier wird das Grundrecht geregelt, die eigenen Daten in einer gängigen Form zu erhalten und diese an einen anderen Verantwortlichen zu übermitteln. Dies gilt jedoch nur für Daten, die aufgrund einer Einwilligung oder eines Vertrages gemäß <a href="https://dsgvo-gesetz.de/art-20-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 20 Abs. 1 a) und b)</a> verarbeitet werden und soweit dies technisch machbar ist.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.6 Widerspruchsrecht gemäß Art. 21 DSGVO</h4>
+                    <p class="mb-3">Sie können der Verarbeitung Ihrer personenbezogenen Daten grundsätzlich widersprechen. Dies gilt insbesondere, wenn Ihr Interesse am Widerspruch das berechtigte Interesse des Verantwortlichen an der Verarbeitung überwiegt und wenn sich die Verarbeitung auf Direktwerbung und/oder Profiling bezieht.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.7 Recht auf „Entscheidung im Einzelfall" gemäß Art. 22 DSGVO</h4>
+                    <p class="mb-3">Sie haben grundsätzlich das Recht, nicht einer ausschließlich auf einer automatisierten Verarbeitung – einschließlich Profiling – beruhenden Entscheidung unterworfen zu werden, die Ihnen gegenüber rechtliche Wirkung entfaltet oder Sie in ähnlicher Weise erheblich beeinträchtigt. Dieses Recht unterliegt jedoch auch Einschränkungen und Ergänzungen in <a href="https://dsgvo-gesetz.de/art-22-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 22 Abs. 2 und 4 DSGVO</a>.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.8 Sonstige Rechte</h4>
+                    <p class="mb-3">Die DSGVO enthält umfassende Rechte, Dritte darüber zu informieren, ob bzw. wie Sie Rechte nach Art. 16, 17, 18 DSGVO geltend gemacht haben. Dies gilt jedoch nur, soweit dies möglich oder mit vertretbarem Aufwand umsetzbar ist.</p>
+
+                    <p class="mb-3">An dieser Stelle möchten wir Sie noch einmal auf Ihr Recht auf Widerruf der Einwilligung gemäß <a href="https://dsgvo-gesetz.de/art-7-dsgvo/" target="_blank" class="text-blue-400 hover:text-blue-300">Art. 7 Abs. 3 DSGVO</a> hinweisen. Dies berührt jedoch nicht die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung.</p>
+
+                    <p class="mb-3">Zudem möchten wir Sie über Ihre Rechte gemäß <a href="https://www.gesetze-im-internet.de/bdsg_2018/__32.html" target="_blank" class="text-blue-400 hover:text-blue-300">§§ 32 ff. BDSG</a> informieren, die jedoch größtenteils mit den soeben beschriebenen Rechten kongruent sind.</p>
+
+                    <h4 class="list-item-title text-lg font-bold mt-3 mb-2">4.1.9 Beschwerderecht gemäß Art. 77 DSGVO</h4>
+                    <p class="mb-3">Sie haben außerdem das Recht, bei einer Datenschutz-Aufsichtsbehörde Beschwerde einzulegen, wenn Sie der Ansicht sind, dass die Verarbeitung der Sie betreffenden personenbezogenen Daten gegen diese Verordnung verstößt.</p>
+
+                    <h2 class="text-2xl font-bold mt-6 mb-3">5. Was ist, wenn morgen die DSGVO abgeschafft wird oder andere Änderungen eintreten?</h2>
+
+                    <p class="mb-3">Der aktuelle Stand dieser Datenschutzerklärung ist der 13.12.2025. Von Zeit zu Zeit ist es notwendig, den Inhalt der Datenschutzerklärung anzupassen, um auf tatsächliche und rechtliche Änderungen zu reagieren. Wir behalten uns daher vor, diese Datenschutzerklärung jederzeit zu ändern. Die geänderte Fassung werden wir an gleicher Stelle veröffentlichen und empfehlen Ihnen, die Datenschutzerklärung regelmäßig zu lesen.</p>
+                </div>
+        </div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const impressumtab = document.getElementById('impressum-tab');
+        const Datenschutztab = document.getElementById('Datenschutz-tab');
+        const impressumcontent = document.getElementById('impressum-content');
+        const Datenschutzcontent = document.getElementById('Datenschutz-content');
+
+        function activateTab(activeTabButton, activeTabContent) {
+            // Update button styles
+            const tabButtons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('bg-blue-600', 'text-white');
+                tabButtons[i].classList.add('bg-gray-600', 'text-gray-200');
+            }
+            activeTabButton.classList.remove('bg-gray-600', 'text-gray-200');
+            activeTabButton.classList.add('bg-blue-600', 'text-white');
+
+            // Update content visibility 
+            for (let i = 0; i < document.getElementsByClassName("tab-button").length; i++) {
+                document.getElementsByClassName("tab-button")[i].classList.remove('active');
+            }
+            for (let i = 0; i < document.getElementsByClassName("tab-content").length; i++) {
+                document.getElementsByClassName("tab-content")[i].classList.remove('active');
+            }
+            activeTabContent.classList.add('active');
+            activeTabButton.classList.add('active');
+        }
+        Datenschutztab.addEventListener('click', () => {
+            activateTab(Datenschutztab, Datenschutzcontent);
+        });
+        // Event listener for Single Player tab button
+        impressumtab.addEventListener('click', () => {
+            activateTab(impressumtab, impressumcontent);
+        }); 
+
+        if (urlParams.get('tab') === 'Datenschutz') {
+            activateTab(Datenschutztab, Datenschutzcontent);
+        } 
+        
+    </script>
+</body>
+</html>
