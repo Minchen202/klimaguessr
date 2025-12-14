@@ -382,7 +382,7 @@
             </div>
 
             <div class="score-info">
-                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span> <span style="display: none;" class="hidden" id="usernameDisplay"> User:</span> <span style="display: none;" id="username"></span></div></div>
+                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span> <span class="hidden" id="usernameDisplay"> User:</span> <span id="username"></span></div></div>
                 <div id="totalScoreDisplay">Score: <span id="totalScore">0</span>  Highscore: <span id="highscore">0</span></div>
             </div>
         </div>
@@ -637,8 +637,6 @@
                 document.getElementsByClassName("btn-secondary")[0].textContent = "New Game";
                 document.getElementsByClassName("btn-back")[0].textContent = "Go Back";
                 document.getElementsByClassName("btn-back")[0].style.left = "170px";
-                document.getElementById('usernameDisplay').style.display = "block";
-                document.getElementById('username').style.display = "block";
                 document.getElementsByClassName("header")[0].classList.remove("hidden");
                 document.getElementById("climateChart").addEventListener("mouseover", function() {
                     socket.emit('resize_chart', {big: true});
@@ -674,6 +672,8 @@
 
             map.on('click', onMapClick);
             document.getElementsByClassName("leaflet-control-zoom")[0].style.display = "none";
+
+            starttimer();
             
             socket.emit('start_solo_game');           
         }
