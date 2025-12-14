@@ -324,7 +324,7 @@
             background: rgb(142, 3, 255);
             color: white;
             top: 40px;
-            left: 170px;
+            left: 70px;
             z-index: 1;
         }
     </style>
@@ -377,19 +377,19 @@
     <div>
         <canvas id="climateChart" width="400" height="300"></canvas>
         <div id="headbar">
-            <div class="header">
-                <h1>🌍 Klima Guessr</h1>
+            <div class="header hidden">
+                <h1>Klima Guessr</h1>
             </div>
 
             <div class="score-info">
-                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span> <span class="hidden" id="usernameDisplay"> User:</span> <span id="username"></span></div></div>
+                <div id="roundDisplay">Round: <span id="currentRound">1</span><span id="totalrounds"></span> <span style="display: none;" class="hidden" id="usernameDisplay"> User:</span> <span style="display: none;" id="username"></span></div></div>
                 <div id="totalScoreDisplay">Score: <span id="totalScore">0</span>  Highscore: <span id="highscore">0</span></div>
             </div>
         </div>
           <div class="buttons">
               
               <button class="btn btn-secondary" onclick="newGame()">+</button>
-              <button class="btn btn-back" onclick="window.location = '/'">Go back</button>
+              <button class="btn btn-back" onclick="window.location = '/'">↩</button>
               <button class="btn btn-primary" id="nextBtn" onclick="nextRound()" disabled>Next Round</button>
               <button class="btn btn-guess hidden" id="guessbutton">Guess</button>
               <div class="timeinfo"><span class="time"></span></div>
@@ -465,7 +465,6 @@
                     document.getElementById("alert").style.transform = "translateX(-100%)";
                 }, 3000);
                 document.getElementById('username').textContent = data.username;
-                document.getElementById('usernameDisplay').classList.remove('hidden');
                 loggedIn = true;
             } else {
                 document.getElementById("alert-text").textContent = "Authentication failed";
@@ -636,6 +635,11 @@
             }
             if (window.innerWidth >= 768) {
                 document.getElementsByClassName("btn-secondary")[0].textContent = "New Game";
+                document.getElementsByClassName("btn-back")[0].textContent = "Go Back";
+                document.getElementsByClassName("btn-back")[0].style.left = "170px";
+                document.getElementById('usernameDisplay').style.display = "block";
+                document.getElementById('username').style.display = "block";
+                document.getElementsByClassName("header")[0].classList.remove("hidden");
                 document.getElementById("climateChart").addEventListener("mouseover", function() {
                     socket.emit('resize_chart', {big: true});
                 });
