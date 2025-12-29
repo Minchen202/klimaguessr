@@ -96,6 +96,33 @@ def handle_start_solo_game():
     logger.info(f"Solo game started for session: {socket_id}")
     emit('solo_game_start_response', {'success': True, 'message': 'Solo game started!', 'climate': active_solo_games[socket_id]['climate']})
 
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
+@app.route("/profile.png", methods=["GET"])
+def profile_image():
+    return send_from_directory('pictures', 'profile.png')
+
+@app.route("/multiplayerhost", methods=["GET"])
+def multiplayerhost():
+    return render_template("multiplayerhost.html")
+
+@app.route("/multiplayer", methods=["GET"])
+def multiplayer():
+    return render_template("multiplayer.html")
+
+@app.route("/singleplayer", methods=["GET"])
+def singleplayer():
+    return render_template("singleplayer.html")
+
+@app.route("/singleplayerlegacy", methods=["GET"])
+def singleplayerlegacy():
+    return render_template("singleplayerlegacy.html")
+  
+@app.route("/settings.png", methods=["GET"])
+def settings_image():
+    return send_from_directory('pictures', 'settings.png')
+
 @socketio.on('submit_solo_guess')
 def handle_submit_solo_guess(data):
     socket_id = request.sid
