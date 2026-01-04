@@ -341,7 +341,7 @@
                     document.getElementById("sended").style.display = "none";
                     actualMarker = L.marker([data["details"]["active_climate"]["lat"], data["details"]["active_climate"]["lng"]], {
                         icon: L.divIcon({
-                            html: '🎯',
+                            html: '<svg fill="#000000" width="25px" height="25px" viewBox="0 0 24 24" id="goal" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="secondary" d="M21.92,5.62A1,1,0,0,0,21,5H19V3a1,1,0,0,0-.62-.92,1,1,0,0,0-1.09.21l-3,3A1,1,0,0,0,14,6V8.59l-2.21,2.2a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L15.41,10H18a1,1,0,0,0,.71-.29l3-3A1,1,0,0,0,21.92,5.62Z" style="fill: rgb(44, 169, 188);"></path><path id="primary" d="M12,22A10,10,0,0,1,12,2h.42a1,1,0,1,1-.18,2H12a8,8,0,1,0,8,8,1.93,1.93,0,0,0,0-.24,1,1,0,0,1,.91-1.09,1,1,0,0,1,1.09.91c0,.14,0,.28,0,.42A10,10,0,0,1,12,22Zm5.88-8.8a1,1,0,0,0-2-.4A4,4,0,1,1,11.2,8.08a1,1,0,1,0-.4-2,6,6,0,1,0,7.08,7.08Z" style="fill: rgb(255, 0, 0);"></path></svg>',
                             iconSize: [25, 25],
                             className: 'actual-marker'
                         })
@@ -350,7 +350,7 @@
                         if (Object.values(data.details.players)[i].alreadyguessed) {
                             const marker = L.marker([Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng], {
                                 icon: L.divIcon({
-                                    html: '📍',
+                                    html: '<svg width="25px" height="25px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><rect width="16" height="16" id="icon-bound" fill="none"/><path d="M8,0C4.688,0,2,2.688,2,6c0,6,6,10,6,10s6-4,6-10C14,2.688,11.312,0,8,0z M8,8C6.344,8,5,6.656,5,5s1.344-3,3-3s3,1.344,3,3 S9.656,8,8,8z" fill="currentColor"/></svg>',
                                     iconSize: [25, 25],
                                     className: 'guess-marker'
                                 })
@@ -546,7 +546,7 @@
                 status = data["details"]["status"];
                 actualMarker = L.marker([data["actual_location_lat"], data["actual_location_lng"]], {
                     icon: L.divIcon({
-                        html: '🎯',
+                        html: '<svg fill="#000000" width="25px" height="25px" viewBox="0 0 24 24" id="goal" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="secondary" d="M21.92,5.62A1,1,0,0,0,21,5H19V3a1,1,0,0,0-.62-.92,1,1,0,0,0-1.09.21l-3,3A1,1,0,0,0,14,6V8.59l-2.21,2.2a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L15.41,10H18a1,1,0,0,0,.71-.29l3-3A1,1,0,0,0,21.92,5.62Z" style="fill: rgb(44, 169, 188);"></path><path id="primary" d="M12,22A10,10,0,0,1,12,2h.42a1,1,0,1,1-.18,2H12a8,8,0,1,0,8,8,1.93,1.93,0,0,0,0-.24,1,1,0,0,1,.91-1.09,1,1,0,0,1,1.09.91c0,.14,0,.28,0,.42A10,10,0,0,1,12,22Zm5.88-8.8a1,1,0,0,0-2-.4A4,4,0,1,1,11.2,8.08a1,1,0,1,0-.4-2,6,6,0,1,0,7.08,7.08Z" style="fill: rgb(255, 0, 0);"></path></svg>',
                         iconSize: [25, 25],
                         className: 'actual-marker'
                     })
@@ -555,7 +555,7 @@
                     if (Object.values(data.details.players)[i].alreadyguessed) {
                         const marker = L.marker([Object.values(data.details.players)[i].guess.lat, Object.values(data.details.players)[i].guess.lng], {
                             icon: L.divIcon({
-                                html: '📍',
+                                html: '<svg width="25px" height="25px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><rect width="16" height="16" id="icon-bound" fill="none"/><path d="M8,0C4.688,0,2,2.688,2,6c0,6,6,10,6,10s6-4,6-10C14,2.688,11.312,0,8,0z M8,8C6.344,8,5,6.656,5,5s1.344-3,3-3s3,1.344,3,3 S9.656,8,8,8z" fill="currentColor"/></svg>',
                                 iconSize: [25, 25],
                                 className: 'guess-marker'
                             })

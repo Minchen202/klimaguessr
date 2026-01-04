@@ -1,3 +1,4 @@
 instance    
 templates/test.html
 __pycache__
+.env

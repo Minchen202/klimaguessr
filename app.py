@@ -1,4 +1,5 @@
-import time
+import os
+from dotenv import load_dotenv
 import flask
 from flask import request, jsonify, render_template, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
@@ -15,6 +16,8 @@ from datetime import datetime
 import json
 import logging
 
+load_dotenv()
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -28,10 +31,12 @@ logger = logging.getLogger(__name__)
 logger.info("Starting application...")
 
 app = flask.Flask(__name__)
-app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
+app.config['SECRET_KEY'] = os.getenv('secretkey')
 app.config.from_object(Config)
 
 db.init_app(app)
+
+print(os.getenv('SECRET_KEY'))
 
 with app.app_context():
     try:
@@ -122,6 +127,10 @@ def singleplayerlegacy():
 @app.route("/settings.png", methods=["GET"])
 def settings_image():
     return send_from_directory('pictures', 'settings.png')
+
+@app.route('/leaderboard.svg', methods=['GET'])
+def leaderboard_icon():
+    return send_from_directory('pictures', 'leaderboard.svg')
 
 @socketio.on('submit_solo_guess')
 def handle_submit_solo_guess(data):
@@ -249,7 +258,12 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     try:
-        logger.info("Server is going live on port 8081...")
-        socketio.run(app, port=8081)
+        port = int(os.environ.get('PORT', 8081))
+        logger.info(f"Server is going live on port {port}")
+        if os.getenv('DEBUG') == 'True':
+            logger.info("Debug mode is ON")
+            socketio.run(app, port=port, debug=True)
+        else:
+            socketio.run(app, port=port)
     except Exception as e:
         logger.error(f"Server crashed: {e}")
