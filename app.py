@@ -212,9 +212,9 @@ def singleplayerlegacy():
 def settings_image():
     return send_from_directory('pictures', 'settings.png')
 
-@app.route('/leaderboard.svg', methods=['GET'])
+@app.route('/legal', methods=['GET'])
 def leaderboard_icon():
-    return send_from_directory('pictures', 'leaderboard.svg')
+    return render_template("legal.html")
 
 @socketio.on('submit_solo_guess')
 def handle_submit_solo_guess(data):
