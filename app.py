@@ -101,6 +101,90 @@ def handle_start_solo_game():
     logger.info(f"Solo game started for session: {socket_id}")
     emit('solo_game_start_response', {'success': True, 'message': 'Solo game started!', 'climate': active_solo_games[socket_id]['climate']})
 
+@socketio.on("start_solo_round")
+def handle_solo_start_round():
+    socket_id = request.sid
+    if socket_id not in active_solo_games:
+        emit('solo_guess_response', {'success': False, 'message': 'No active solo game found.'})
+        return
+    active_solo_games[socket_id]['current_round'] += 1
+    active_solo_games[socket_id]['climate'] = random.choice(climateData)
+    emit('solo_round_started', {
+        'success': True,
+        'message': f'Round {active_solo_games[socket_id]["current_round"]} started!',
+        'climate': active_solo_games[socket_id]['climate'],
+        "current_round": active_solo_games[socket_id]['current_round'],
+        "total_score": active_solo_games[socket_id]['score']
+    })
+
+@socketio.on("delete_solo_game")
+def handle_delete_solo_game():
+    socket_id = request.sid
+    if socket_id in active_solo_games:
+        del active_solo_games[socket_id]
+        emit('solo_game_deleted', {'success': True, 'message': 'Solo game deleted successfully.'})
+    else:
+        emit('solo_game_deleted', {'success': False, 'message': 'No active solo game found.'})
+
+@socketio.on("save_solo_game")
+def handle_save_solo_game(data):
+    socket_id = request.sid
+    token = data.get('token')
+    username = db_models.Users.query.filter_by(token=token).first()
+    print(db_models.Users.query.filter_by(username=username).first())
+    if socket_id not in active_solo_games:
+        emit('save_solo_response', {'success': False, 'message': 'No active solo game found.'})
+        return
+    if not username or username not in str(db_models.Users.query.filter_by(username=username).first()).split(";")[0]:
+        emit('save_solo_response', {'success': False, 'message': 'Invalid username.'})
+        return
+
+    game_data = db_models.Leaderboard(username=username, score=active_solo_games[socket_id]['score'], timestamp=datetime.now())
+    db.session.add(game_data)
+    db.session.commit()
+    print(f'Solo game saved for user: {username} with score: {active_solo_games[socket_id]["score"]}')
+    emit('save_solo_response', {'success': True, 'message': 'Solo game saved successfully!'})
+
+
+
+@socketio.on('get_leaderboard')
+def handle_get_leaderboard():
+    # Alle Einträge abfragen, absteigend nach score sortieren
+    leaderboard_data = db_models.Leaderboard.query.order_by(db_models.Leaderboard.score.desc()).all()
+
+    # Die Daten für den Client formatieren
+    leaderboard = [{
+        'username': entry.username,
+        'score': entry.score,
+        'timestamp': entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    } for entry in leaderboard_data]
+
+    # Daten an den Client senden
+    socketio.emit('leaderboard_update', leaderboard)
+
+@socketio.on('register')
+def handle_register(data):
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+
+    if not username or not password:
+        emit('registration_response', {'success': False, 'message': 'Username and password are required.'})
+        return
+
+    if db_models.Users.query.filter_by(username=username).first():
+      emit('registration_response', {'success': False, 'message': 'Username already exists.'})
+      return
+
+    hashed_password = generate_password_hash(password)
+
+    new_user = db_models.Users(username=username, password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    print(f'New user registered: {username}')
+    emit('registration_response', {'success': True, 'message': 'Registration successful!'})
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -135,30 +219,30 @@ def leaderboard_icon():
 @socketio.on('submit_solo_guess')
 def handle_submit_solo_guess(data):
     socket_id = request.sid
-    if socket_id not in active_solo_games:
-        logger.warning(f"Guess submitted for non-existent solo session: {socket_id}")
-        return
-
     guess_lat = data.get('guessLat')
     guess_lng = data.get('guessLng')
+
     game_data = active_solo_games[socket_id]
     climate = game_data['climate']
-    
     actual_lat = climate['lat']
     actual_lng = climate['lng']
 
-    dist = calculate_distance(guess_lat, guess_lng, actual_lat, actual_lng)
-    points = max(0, round(5000 - dist))
-    
+    lat_distance = abs((guess_lat - actual_lat)) * 111  # approx km per degree latitude
+    lon_distance = abs((guess_lng - actual_lng)) * 111  # approx km per degree longitude
+
+    lat_points = 0 if lat_distance > 2500 else round(2500 - lat_distance)
+    lon_points = 0 if lon_distance > 2500 else round(2500 - lon_distance)
+    points = lat_points + lon_points
+
     game_data['score'] += points
-    logger.info(f"Solo guess received from {socket_id}. Points earned: {points}. Total: {game_data['score']}")
-    
     emit('solo_guess_response', {
         'success': True,
+        'message': f'Round {game_data["current_round"]} started!',
         'current_round': game_data['current_round'],
-        'name': climate['name'],
+        "name": climate['name'],
         'score': game_data['score'],
         'actual_location': {'lat': actual_lat, 'lng': actual_lng},
+        "total_points": game_data['score'],
         'points_earned': points
     })
 
