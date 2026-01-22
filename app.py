@@ -36,8 +36,6 @@ app.config.from_object(Config)
 
 db.init_app(app)
 
-print(os.getenv('SECRET_KEY'))
-
 with app.app_context():
     try:
         db.create_all()
@@ -84,7 +82,7 @@ def broadcast_lobby_update(lobby_code):
         socketio.emit('lobby_update', {
             'lobby_code': lobby_code,
             'details': active_lobbies[lobby_code]
-        }, room=lobby_code)
+        },room=lobby_code)
 
 @socketio.on('start_solo_game')
 def handle_start_solo_game():
@@ -188,6 +186,7 @@ def handle_register(data):
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
+
 @app.route("/profile.png", methods=["GET"])
 def profile_image():
     return send_from_directory('pictures', 'profile.png')
@@ -203,6 +202,10 @@ def multiplayer():
 @app.route("/singleplayer", methods=["GET"])
 def singleplayer():
     return render_template("singleplayer.html")
+
+@app.route("/legal", methods=["GET"])
+def legal():
+    return render_template("legal.html")
 
 @app.route("/singleplayerlegacy", methods=["GET"])
 def singleplayerlegacy():
@@ -272,6 +275,7 @@ def handle_login(data):
 def handle_create_lobby():
     try:
         new_lobby_code = generate_unique_lobby_code()
+
         with lobbies_lock:
             active_lobbies[new_lobby_code] = {
                 'status': 'waiting',
@@ -304,13 +308,43 @@ def handle_join_lobby(data):
             emit('join_result', {'success': False, 'message': 'Nickname taken.'})
             return
 
-        lobby['players'][nickname] = {
-            'nickname': nickname,
-            'session_id': request.sid,
-            'alreadyguessed': False,
-            'guess': None,
-            'score': 0
-        }
+        with lobbies_lock:
+            if lobby_code not in active_lobbies:
+                emit('join_result', {
+                    'success': False,
+                    'message': f"Lobby '{lobby_code}' not found."
+                })
+                return
+
+            if len(active_lobbies[lobby_code]['players']) >= 8:
+                emit('join_result', {
+                    'success': False,
+                    'message': "Lobby is full."
+                })
+                return
+
+            if len(nickname) >= 10:
+                emit('join_result', {
+                    'success': False,
+                    'message': "Nickname is too long."
+                })
+                return
+
+            if nickname in active_lobbies[lobby_code]['players']:
+                emit('join_result', {
+                    'success': False,
+                    'message': "Nickname already taken."
+                })
+                return
+
+            # Add player to lobby
+            active_lobbies[lobby_code]['players'][nickname] = {
+                'nickname': nickname,
+                'session_id': request.sid,
+                'alreadyguessed': False,
+                'guess': None,
+                'score': 0
+            }
 
     join_room(lobby_code)
     logger.info(f"Player {nickname} joined lobby {lobby_code}")
