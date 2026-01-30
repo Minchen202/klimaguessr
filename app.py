@@ -24,7 +24,19 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ALLOWED_ORIGINS)
+from flask import Flask
+from flask_socketio import SocketIO
+
+origins = [
+    "https://klimaguessr.cns-studios.com", 
+    "http://klimaguessr.cns-studios.com"
+]
+
+socketio = SocketIO(
+    app, 
+    cors_allowed_origins=origins,
+    async_mode='gevent' # or 'eventlet' depending on your setup
+)
 
 active_lobbies = {}
 active_solo_games = {}
