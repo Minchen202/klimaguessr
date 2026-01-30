@@ -6,7 +6,6 @@ import random
 import uuid
 import string
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.middleware.proxy_fix import ProxyFix
 import threading
 import math
 from database import db
@@ -19,7 +18,13 @@ app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
 
 app.config.from_object(Config)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://klimaguessr.cns-studios.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 db.init_app(app)
 
 with app.app_context():
