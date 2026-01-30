@@ -34,6 +34,7 @@ app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('secretkey')
 app.config.from_object(Config)
 
+db.init_app(app)
 
 with app.app_context():
     try:
