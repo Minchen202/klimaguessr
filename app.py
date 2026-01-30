@@ -18,6 +18,7 @@ app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
 
 app.config.from_object(Config)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 db.init_app(app)
 
 with app.app_context():
