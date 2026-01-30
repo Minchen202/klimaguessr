@@ -24,7 +24,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-socketio = SocketIO(app, cors_allowed_origins=["https://klimaguessr.cns-studios.com", "http://localhost:8081", "http://127.0.0.1:8081"])
+socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ALLOWED_ORIGINS)
 
 active_lobbies = {}
 active_solo_games = {}
