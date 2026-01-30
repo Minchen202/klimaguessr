@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 import time
 import flask
 from flask import request, jsonify, render_template, send_from_directory
@@ -15,7 +17,6 @@ from datetime import datetime
 import json
 
 app = flask.Flask(__name__)
-app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
 
 app.config.from_object(Config)
 
@@ -24,7 +25,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins=["https://klimaguessr.cns-studios.com", "http://klimaguessr.cns-studios.com"], async_mode='eventlet', logger=True, engineio_logger=True)
 
 active_lobbies = {}
 active_solo_games = {}
