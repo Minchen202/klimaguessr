@@ -18,13 +18,7 @@ app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
 
 app.config.from_object(Config)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://klimaguessr.cns-studios.com"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 db.init_app(app)
 
 with app.app_context():
@@ -713,4 +707,4 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=True, port=8081)
+    socketio.run(app,debug=True, port=8081, cors_allowed_origins="https://klimaguessr.cns-studios.com")
