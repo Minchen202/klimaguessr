@@ -24,7 +24,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="https://klimaguessr.cns-studios.com")
 
 active_lobbies = {}
 active_solo_games = {}
@@ -707,4 +707,4 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=True, port=8081, cors_allowed_origins="https://klimaguessr.cns-studios.com")
+    socketio.run(app,debug=True, port=8081)
