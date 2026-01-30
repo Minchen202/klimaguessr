@@ -6,6 +6,7 @@ import random
 import uuid
 import string
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 import threading
 import math
 from database import db
