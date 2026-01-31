@@ -351,7 +351,9 @@
     </div>
 
     <script>
-        const socket = io();
+        const socket = io("https://klimaguessr.cns-studios.com", {
+          transports: ["websocket"]
+        });
         const urlParams = new URLSearchParams(window.location.search);
         // Get references to buttons and content sections
         const multiplayerTab = document.getElementById('multiplayer-tab');
