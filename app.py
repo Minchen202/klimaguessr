@@ -45,7 +45,7 @@ with app.app_context():
         logger.error(f"Critical error during database initialization: {e}")
 
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ALLOWED_ORIGINS)
 
 active_lobbies = {}
 active_solo_games = {}
