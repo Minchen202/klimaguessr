@@ -1,4 +1,5 @@
-import time
+import os
+from dotenv import load_dotenv
 import flask
 from flask import request, jsonify, render_template, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
@@ -6,6 +7,7 @@ import random
 import uuid
 import string
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 import threading
 import math
 from database import db
@@ -13,34 +15,49 @@ from config import Config
 import db_models
 from datetime import datetime
 import json
+import logging
+
+load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+logger.info("Starting application...")
 
 app = flask.Flask(__name__)
-app.config['SECRET_KEY'] = 'd711deff-6edd-4364-933b-62d7702806cc'
-
+app.config['SECRET_KEY'] = os.getenv('secretkey')
 app.config.from_object(Config)
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 db.init_app(app)
 
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        logger.info("Database tables initialized successfully.")
+    except Exception as e:
+        logger.error(f"Critical error during database initialization: {e}")
 
-socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ALLOWED_ORIGINS)
+
+socketio = SocketIO(app, cors_allowed_origins="https://klimaguessr.cns-studios.com")
 
 active_lobbies = {}
 active_solo_games = {}
 
-
-
-# Load climate data from JSON file
 with open('climate_data.json', 'r') as f:
   climateData = json.load(f)
 
 lobbies_lock = threading.Lock()
 
-
-
 def generate_unique_lobby_code(length=6):
-    """Generates a unique alphanumeric lobby code."""
     characters = string.ascii_uppercase + string.digits
     while True:
         code = ''.join(random.choice(characters) for i in range(length))
@@ -76,6 +93,7 @@ def handle_start_solo_game():
         'score': 0,
         'climate': random.choice(climateData)
     }
+    logger.info('Solo game started')
     emit('solo_game_start_response', {'success': True, 'message': 'Solo game started!', 'climate': active_solo_games[socket_id]['climate']})
 
 @socketio.on('resize_chart')
@@ -83,6 +101,7 @@ def handle_resize_chart(data):
     socket_id = request.sid
     if socket_id not in active_solo_games:
         emit('solo_guess_response', {'success': False, 'message': 'No active solo game found.'})
+        logger.warning("No active solo game found")
         return
     emit('resize_chart_response', {
         'climate': active_solo_games[socket_id]['climate'],
@@ -108,6 +127,7 @@ def handle_submit_solo_guess(data):
     points = lat_points + lon_points
 
     game_data['score'] += points
+    logger.info('Solo guess submitted')
     emit('solo_guess_response', {
         'success': True,
         'message': f'Round {game_data["current_round"]} started!',
@@ -124,9 +144,11 @@ def handle_solo_start_round():
     socket_id = request.sid
     if socket_id not in active_solo_games:
         emit('solo_guess_response', {'success': False, 'message': 'No active solo game found.'})
+        logger.warning("No active solo game found")
         return
     active_solo_games[socket_id]['current_round'] += 1
     active_solo_games[socket_id]['climate'] = random.choice(climateData)
+    logger.info('Solo round started')
     emit('solo_round_started', {
         'success': True,
         'message': f'Round {active_solo_games[socket_id]["current_round"]} started!',
@@ -141,26 +163,29 @@ def handle_delete_solo_game():
     if socket_id in active_solo_games:
         del active_solo_games[socket_id]
         emit('solo_game_deleted', {'success': True, 'message': 'Solo game deleted successfully.'})
+        logger.info('Solo game not saved')
     else:
         emit('solo_game_deleted', {'success': False, 'message': 'No active solo game found.'})
+        logger.warning('No active solo game found')
 
 @socketio.on("save_solo_game")
 def handle_save_solo_game(data):
     socket_id = request.sid
     token = data.get('token')
     username = db_models.Users.query.filter_by(token=token).first()
-    print(db_models.Users.query.filter_by(username=username).first())
     if socket_id not in active_solo_games:
+        logger.warning("No active solo game found")
         emit('save_solo_response', {'success': False, 'message': 'No active solo game found.'})
         return
     if not username or username not in str(db_models.Users.query.filter_by(username=username).first()).split(";")[0]:
+        logger.warning("Invalid username")
         emit('save_solo_response', {'success': False, 'message': 'Invalid username.'})
         return
 
     game_data = db_models.Leaderboard(username=username, score=active_solo_games[socket_id]['score'], timestamp=datetime.now())
     db.session.add(game_data)
     db.session.commit()
-    print(f'Solo game saved for user: {username} with score: {active_solo_games[socket_id]["score"]}')
+    logger.info(f'Solo game saved for user: {username} with score: {active_solo_games[socket_id]["score"]}')
     emit('save_solo_response', {'success': True, 'message': 'Solo game saved successfully!'})
 
 
@@ -188,11 +213,13 @@ def handle_register(data):
 
     if not username or not password:
         emit('registration_response', {'success': False, 'message': 'Username and password are required.'})
+        logger.warning("Username and password missing")
         return
 
     if db_models.Users.query.filter_by(username=username).first():
-      emit('registration_response', {'success': False, 'message': 'Username already exists.'})
-      return
+        emit('registration_response', {'success': False, 'message': 'Username already exists.'})
+        logger.warning("Username already exists")
+        return
 
     hashed_password = generate_password_hash(password)
 
@@ -200,7 +227,7 @@ def handle_register(data):
     db.session.add(new_user)
     db.session.commit()
 
-    print(f'New user registered: {username}')
+    logger.info(f'New user registered: {username}')
     emit('registration_response', {'success': True, 'message': 'Registration successful!'})
 
 @socketio.on('login')
@@ -210,6 +237,7 @@ def handle_login(data):
 
     if not username or not password:
         emit('login_response', {'success': False, 'message': 'Username and password are required.'})
+        logger.warning("Username and password missing")
         return
 
     user_data_raw = db_models.Users.query.filter_by(username=username).first()
@@ -217,7 +245,8 @@ def handle_login(data):
     user_data = [str(user_data_raw).split(";")[0], str(user_data_raw).split(";")[1]]
 
     if not user_data:
-        emit('login_response', {'success': False, 'message': 'Invalid username or password.'})
+        emit('login_response', {'success': False, 'message': 'Username does not exist.'})
+        logger.warning("Username does not exist")
         return
 
     if check_password_hash(user_data[1], password):
@@ -226,10 +255,11 @@ def handle_login(data):
         db_models.Users.query.filter_by(username=username).update({'token': token})
         db.session.commit()
 
-        print(f'User logged in: {username} with token: {token}')
+        logger.info(f'User logged in: {username} with token: {token}')
         emit('login_response', {'success': True, 'message': 'Login successful!', 'token': token, 'username': username})
     else:
         emit('login_response', {'success': False, 'message': 'Invalid username or password.'})
+        logger.warning("Invalid username or password")
 
 @socketio.on('authenticate')
 def handle_authenticate(data):
@@ -239,6 +269,7 @@ def handle_authenticate(data):
     username = str(db_models.Users.query.filter_by(token=token).first()).split(";")[0]
 
     if username:
+        logger.info(f'User authenticated: {username}')
         emit('auth_response', {
             'success': True,
             'message': f'Welcome, {username}! Your token is valid.',
@@ -246,6 +277,7 @@ def handle_authenticate(data):
         })
     else:
         emit('auth_response', {'success': False, 'message': 'Authentication failed. Invalid or expired token.'})
+        logger.warning("Authentication failed. Invalid or expired token.")
 
 @app.route("/is_lobby_joinable", methods=["POST"])
 def is_lobby_joinable():
@@ -260,6 +292,7 @@ def is_lobby_joinable():
             return jsonify({
                 "joinable": False
             })
+        
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -317,7 +350,7 @@ def handle_create_lobby():
         
         # Join the Socket.IO room for this lobby
         join_room(new_lobby_code)
-        print(f"Lobby created: {new_lobby_code}. Total active lobbies: {len(active_lobbies)}")
+        logger.info(f"Lobby created: {new_lobby_code}.")
 
         emit('lobby_created', {
             'success': True,
@@ -326,11 +359,12 @@ def handle_create_lobby():
         })
 
     except Exception as e:
-        print(f"Error creating lobby: {e}")
+        logger.error(f"Error creating lobby: {e}")
         emit('lobby_created', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
         })
+        
 @socketio.on("register_player")
 def reg(data):
     nickname = data.get('nickname', None)
@@ -341,6 +375,7 @@ def reg(data):
             'success': False,
             'message': "Lobby code and nickname are required."
         })
+        logger.warning("Lobby code and nickname missing")
         return
 
     if len(nickname) > 10:
@@ -348,6 +383,7 @@ def reg(data):
             'success': False,
             'message': "Nickname is too long."
         })
+        logger.warning("Nickname is too long")
         return
 
     with lobbies_lock:
@@ -357,6 +393,7 @@ def reg(data):
                 'error_code': 'lobby_not_found',
                 'message': f"Lobby '{lobby_code}' not found."
             })
+            logger.warning(f"Lobby '{lobby_code}' not found.")
             return
         if not nickname in active_lobbies[lobby_code]['players'] and not nickname == "Host":
             emit('register_result', {
@@ -364,10 +401,11 @@ def reg(data):
                 'message': "Nickname doesn't exist in the lobby.",
                 'error_code': 'nickname_not_found'
             })
+            logger.warning(f"Nickname '{nickname}' not found in lobby '{lobby_code}'.")
             return
         
     join_room(lobby_code)
-
+    logger.info(f"Player '{nickname}' registered in lobby '{lobby_code}'.")
     emit('register_result', {
         'success': True,
         'message': "Successfully registered."
@@ -380,12 +418,14 @@ def handle_join_lobby(data):
         nickname = data['nickname']
 
         if not lobby_code or not nickname:
+            logger.warning("Lobby code and nickname missing")
             emit('join_result', {
                 'success': False,
                 'message': "Lobby code and nickname are required."
             })
             return
         if nickname == "":
+            logger.warning("Nickname cannot be empty")
             emit('join_result', {
                 'success': False,
                 'message': "Nickname cannot be empty."
@@ -394,6 +434,7 @@ def handle_join_lobby(data):
 
         with lobbies_lock:
             if lobby_code not in active_lobbies:
+                logger.warning(f"Lobby '{lobby_code}' not found.")
                 emit('join_result', {
                     'success': False,
                     'message': f"Lobby '{lobby_code}' not found."
@@ -401,6 +442,7 @@ def handle_join_lobby(data):
                 return
 
             if len(active_lobbies[lobby_code]['players']) >= 8:
+                logger.warning(f"Lobby '{lobby_code}' is full.")
                 emit('join_result', {
                     'success': False,
                     'message': "Lobby is full."
@@ -408,6 +450,7 @@ def handle_join_lobby(data):
                 return
 
             if len(nickname) >= 10:
+                logger.warning("Nickname is too long")
                 emit('join_result', {
                     'success': False,
                     'message': "Nickname is too long."
@@ -415,6 +458,7 @@ def handle_join_lobby(data):
                 return
 
             if nickname in active_lobbies[lobby_code]['players']:
+                logger.warning("Nickname already taken")
                 emit('join_result', {
                     'success': False,
                     'message': "Nickname already taken."
@@ -432,7 +476,7 @@ def handle_join_lobby(data):
 
         # Join the Socket.IO room for this lobby
         join_room(lobby_code)
-        print(f"Player '{nickname}' joined lobby '{lobby_code}'")
+        logger.info(f"Player '{nickname}' joined lobby '{lobby_code}'")
         emit('join_result', {
             'success': True,
             "nickname": nickname,
@@ -444,7 +488,7 @@ def handle_join_lobby(data):
         broadcast_lobby_update(lobby_code)
 
     except Exception as e:
-        print(f"Error joining lobby: {e}")
+        logger.error(f"Error joining lobby: {e}")
         emit('join_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -452,11 +496,11 @@ def handle_join_lobby(data):
 
 @socketio.on('start_lobby')
 def handle_start_lobby(data):
-    """Handle starting a lobby game"""
     try:
         lobby_code = data['lobby_code'].upper()
 
         if lobby_code not in active_lobbies:
+            logger.warning(f"Lobby '{lobby_code}' not found.")
             emit('start_result', {
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found."
@@ -467,9 +511,8 @@ def handle_start_lobby(data):
         active_lobbies[lobby_code]['active_climate'] = random.choice(climateData)
         active_lobbies[lobby_code]['round'] = 1
 
-        print(f"Lobby '{lobby_code}' started with climate {active_lobbies[lobby_code]['active_climate']}")
+        logger.info(f"Lobby '{lobby_code}' started.")
 
-        # Broadcast to all players in the lobby that the game started
         socketio.emit('game_started', {
             'success': True,
             'message': f"Game started in lobby '{lobby_code}'",
@@ -478,7 +521,7 @@ def handle_start_lobby(data):
         }, room=lobby_code)
 
     except Exception as e:
-        print(f"Error starting lobby: {e}")
+        logger.error(f"Error starting lobby: {e}")
         emit('start_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -496,9 +539,11 @@ def handle_guess(data):
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found or not started yet."
             })
+            logger.warning(f"Lobby '{lobby_code}' not found or not started yet.")
             return
 
         if nickname not in active_lobbies[lobby_code]['players']:
+            logger.warning(f"Player '{nickname}' not found in lobby '{lobby_code}'.")
             emit('guess_result', {
                 'success': False,
                 'message': f"Player '{nickname}' not found in lobby '{lobby_code}'."
@@ -510,9 +555,9 @@ def handle_guess(data):
                 'success': False,
                 'message': f"Player '{nickname}' has already guessed."
             })
+            logger.warning(f"Player '{nickname}' has already guessed in lobby '{lobby_code}'.")
             return
 
-        # Record the guess
         active_lobbies[lobby_code]['players'][nickname]['alreadyguessed'] = True
         active_lobbies[lobby_code]['players'][nickname]['guess'] = guess
 
@@ -522,7 +567,7 @@ def handle_guess(data):
             'guess': guess
         })
 
-        print(f"Player '{nickname}' made a guess: {guess}")
+        logger.info(f"Player '{nickname}' made a guess.")
 
         already_guessed = [p['nickname'] for p in active_lobbies[lobby_code]['players'].values() if p['alreadyguessed']]
         not_guessed = [p['nickname'] for p in active_lobbies[lobby_code]['players'].values() if not p['alreadyguessed']]
@@ -534,7 +579,7 @@ def handle_guess(data):
         }, room=lobby_code)
 
     except Exception as e:
-        print(f"Error handling guess: {e}")
+        logger.error(f"Error handling guess: {e}")
         emit('guess_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -542,11 +587,11 @@ def handle_guess(data):
 
 @socketio.on('end_round')
 def handle_end_round(data):
-    """Handle ending a round and calculating scores"""
     try:
         lobby_code = data['lobby_code'].upper()
 
         if lobby_code not in active_lobbies or active_lobbies[lobby_code]['status'] != 'playing':
+            logger.warning(f"Lobby '{lobby_code}' not found or not in playing state.")
             emit('end_result', {
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found or not in playing state."
@@ -555,7 +600,6 @@ def handle_end_round(data):
 
         active_lobbies[lobby_code]['status'] = 'result'
 
-        # Calculate scores for all players
         for player in active_lobbies[lobby_code]['players']:
             if not active_lobbies[lobby_code]['players'][player]['alreadyguessed']:
                 continue
@@ -579,8 +623,7 @@ def handle_end_round(data):
                 points = round(3000 + (1000 - distance))
 
             active_lobbies[lobby_code]['players'][player]['score'] += points
-
-        # Broadcast results to all players
+        logger.info(f"Round ended in lobby '{lobby_code}'.")
         socketio.emit('round_ended', {
             'success': True,
             'message': f"Round ended in lobby '{lobby_code}'",
@@ -590,7 +633,7 @@ def handle_end_round(data):
         }, room=lobby_code)
 
     except Exception as e:
-        print(f"Error ending round: {e}")
+        logger.error(f"Error ending round: {e}")
         emit('end_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -602,6 +645,7 @@ def handle_start_new_round(data):
         lobby_code = data['lobby_code'].upper()
 
         if lobby_code not in active_lobbies or active_lobbies[lobby_code]['status'] != 'result':
+            logger.warning(f"Lobby '{lobby_code}' not found or not in result state.")
             emit('new_round_result', {
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found or not in result state."
@@ -612,12 +656,11 @@ def handle_start_new_round(data):
         active_lobbies[lobby_code]['active_climate'] = random.choice(climateData)
         active_lobbies[lobby_code]['round'] += 1
 
-        # Reset player guesses
         for nickname in active_lobbies[lobby_code]['players']:
             active_lobbies[lobby_code]['players'][nickname]['alreadyguessed'] = False
             active_lobbies[lobby_code]['players'][nickname]['guess'] = None
 
-        # Broadcast new round to all players
+        logger.info(f"New round started in lobby '{lobby_code}'.")
         socketio.emit('new_round_started', {
             'success': True,
             'all_players': list(active_lobbies[lobby_code]['players'].keys()),
@@ -627,7 +670,7 @@ def handle_start_new_round(data):
         }, room=lobby_code)
 
     except Exception as e:
-        print(f"Error starting new round: {e}")
+        logger.error(f"Error starting new round: {e}")
         emit('new_round_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -638,17 +681,17 @@ def handle_end_game(data):
         lobby_code = data['lobby_code'].upper()
 
         if lobby_code not in active_lobbies or active_lobbies[lobby_code]['status'] != 'result':
+            logger.warning(f"Lobby '{lobby_code}' not found or not in result state.")
             emit('end_game_result', {
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found or not in result state."
             })
             return
 
-        # Reset the lobby
         with lobbies_lock:
             del active_lobbies[lobby_code]
 
-        print(f"Game ended and lobby '{lobby_code}' deleted.")
+        logger.info(f"Game ended and lobby '{lobby_code}' deleted.")
 
         emit('end_game', {
             'lobby_code': lobby_code,
@@ -661,7 +704,7 @@ def handle_end_game(data):
         })
 
     except Exception as e:
-        print(f"Error ending game: {e}")
+        logger.error(f"Error ending game: {e}")
         emit('end_game_result', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -669,12 +712,14 @@ def handle_end_game(data):
 @socketio.on('get_lobby_info')
 def handle_get_lobby_info(data):
     if not data:
+        logger.warning("No data provided for getting lobby info.")
         emit('lobby_info', {
             'success': False,
             'message': "No data provided."
         })
         return
     if 'lobby_code' not in data:
+        logger.warning("Lobby code is required for getting lobby info.")
         emit('lobby_info', {
             'success': False,
             'message': "Lobby code is required."
@@ -693,18 +738,20 @@ def handle_get_lobby_info(data):
                 'details': lobby,
                 'all_players': list(lobby['players'].keys())
             })
+            logger.info(f"Lobby info sent for lobby '{lobby_code}'.")
         else:
             emit('lobby_info', {
                 'success': False,
                 'message': f"Lobby '{lobby_code}' not found."
             })
+            logger.warning(f"Lobby '{lobby_code}' not found.")
 
     except Exception as e:
-        print(f"Error getting lobby info: {e}")
+        logger.error(f"Error getting lobby info: {e}")
         emit('lobby_info', {
             'success': False,
             'message': f'An error occurred: {str(e)}'
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=True, port=8081)
+    socketio.run(app,debug=False, port=8081)
