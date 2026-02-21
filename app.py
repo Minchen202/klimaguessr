@@ -780,4 +780,4 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=True, port=8081)
+    socketio.run(app,debug=os.getenv("DEBUG", False), port=8081)
