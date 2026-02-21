@@ -324,6 +324,31 @@ def singleplayerlegacy():
 @app.route("/settings.png", methods=["GET"])
 def settings_image():
     return send_from_directory('pictures', 'settings.png')
+
+@app.route("/climamap", methods=["GET"])
+def climamap():
+    return render_template("climamap.html")
+
+@app.route("/closest_loc", methods=["POST"])
+def closes_loc():
+    data = request.get_json()
+    lat = data["lat"]
+    lng = data["lng"]
+
+    closest_climate = None
+    closest_distance = float('inf')
+
+    for climate in climateData:
+        distance = calculate_distance(lat, lng, climate['lat'], climate['lng'])
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_climate = climate
+
+    return jsonify({
+        "closest_climate": closest_climate
+    })
+
+
 @socketio.on('connect')
 def handle_connect():
     print(f'Client {request.sid} connected')
@@ -675,6 +700,7 @@ def handle_start_new_round(data):
             'success': False,
             'message': f'An error occurred: {str(e)}'
         })
+        
 @socketio.on('end_game')
 def handle_end_game(data):
     try:
@@ -754,4 +780,4 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
-    socketio.run(app,debug=False, port=8081)
+    socketio.run(app,debug=True, port=8081)

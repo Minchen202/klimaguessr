@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Klima Guessr - Kannst du eraten wo das Klimadiagramm herkommt?">
+    <meta name="author" content="Jannik H.">
+    <meta name="icon" content="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Klima Guessr</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a202c;
+            min-height: 100vh;
+            color: white;
+        }
+
+        #headbar {
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          width: 98%;
+          height: 80px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 10px;
+          background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+          border-width: 1px;
+          border-color: #1754ce;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 25%;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 50%;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .climate-chart {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            align-items: center;    
+        }
+        
+        #roundDisplay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+        }
+        #totalScoreDisplay {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+        .chart-title {
+            text-align: center;
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-again{
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            z-index: 1;
+        }
+        .btn-safe{
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            z-index: 1;
+            margin-top: 10px;
+        }
+        .btn-guess {
+            position: absolute;
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+            right: 10px;
+            bottom: 20px;
+            z-index: 1;
+            width: 120px;
+        }
+        .btn-guess.hidden {
+            display: none;
+        }
+
+        .btn-primary {
+            position: absolute;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            left: -550px;
+            bottom: 20px;
+            z-index: 1;
+        }
+
+        .btn-secondary {
+            position: fixed;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            top: 40px;
+            left: 10px;
+            z-index: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #map {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+        }
+
+        .result-popup {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .result-popup.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .game-over {
+            position: fixed;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-over-content {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .game-over h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196F3;
+            margin: 20px 0;
+        }
+
+        .instruction {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        #climateChart:before {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 50%;
+            height: 45%;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        #climateChart.big {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 800px;
+            height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        #climateChart {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1;
+            width: 400px;
+            height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            #climateChart {
+                width: 100%;
+                height: 40%;
+                position: fixed;
+                bottom: 0px;
+                right: 0px;
+                z-index: 1;
+                border-radius: 10px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                transition: all 0.3s ease;
+            }
+            #climateChart:before {
+                display: none;
+            }
+            #header {
+              position: fixed;
+              height: 5%;
+            }
+        }
+        
+        #alert {
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in;
+        }
+        .btn-back {
+            position: fixed;
+            background: rgb(142, 3, 255);
+            color: white;
+            top: 40px;
+            left: 10px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="headbar">
+            <div class="header hidden">
+                <h1>Klima Guessr</h1>
+            </div>
+
+        </div>
+          <div class="buttons">
+              <button class="btn btn-back" onclick="window.location = '/'">↩</button>
+          </div>
+        
+
+        <div>
+            <div id="map"></div>
+        </div>            
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        let mobile = false;
+
+
+        function init() {
+            if (window.innerWidth >= 768) {
+                document.getElementsByClassName("btn-back")[0].textContent = "Go Back";
+                document.getElementsByClassName("header")[0].classList.remove("hidden");
+                mobile = false;
+            } else {
+                const mobilechart = document.createElement("canvas");
+                
+                mobilechart.id = "climateChart";
+                mobilechart.classList.add("hidden");
+                mobilechart.width = window.innerWidth;
+                mobilechart.height = window.innerHeight * 0.4;
+                document.body.appendChild(mobilechart);
+
+                mobile = true;
+            }
+
+
+            map = L.map('map').setView([20, 0], 2);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const linecoordinates = [[0, -9999999999],[0, 9999999999]]
+            const aquator = L.polyline(linecoordinates, {
+              color: "#A9A9A9", weight: 0.7, dashArray: null, opacity: 0.8 
+            }).addTo(map);
+
+            const south = L.polyline([[23.4367, -9999999999],[23.4367, 9999999999]], {
+              color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+            
+            const north = L.polyline([[-23.4367, -9999999999],[-23.4367, 9999999999]], {
+              color: "#A9A9A9", weight: 0.7, dashArray: (5,5), opacity: 0.8 
+            }).addTo(map);
+
+            map.on('click', onMapClick);
+            document.getElementsByClassName("leaflet-control-zoom")[0].style.display = "none";
+        }
+        async function onMapClick(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+
+            try {
+                map.removeLayer(chart);
+            } catch (error) {
+                
+            } 
+
+            const location = await fetch('/closest_loc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ lat: e.latlng.lat, lng: e.latlng.lng })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!mobile) {
+                    chart = L.marker([data.closest_climate.lat, data.closest_climate.lng], {
+                        icon: L.divIcon({
+                            html: '<canvas id="climateChart" width="400" height="300"></canvas>',
+                            iconSize: [25, 25],
+                            className: 'chart'
+                        })
+                    }).addTo(map);
+                    drawClimateChart(data.closest_climate, false);
+                } else {
+                    drawClimateChart(data.closest_climate, true);
+                    document.getElementById("climateChart").classList.remove("hidden");
+                }
+            })
+            
+        }
+
+        function drawClimateChart(location, big=false) {
+            const canvas = document.getElementById('climateChart');
+            const ctx = canvas.getContext('2d');
+            
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+
+            const margin = 60;
+            const chartWidth = canvas.width - 2 * margin;
+            const chartHeight = canvas.height - 2 * margin;
+            
+
+            const avgTemp = Math.round((location.temp.reduce((a, b) => a + b, 0) / 12) * 10) / 10;
+            const totalPrecip = location.precip.reduce((a, b) => a + b, 0);
+            
+
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                ctx.fillText(months[i], x, canvas.height - margin + 20);
+            }
+            
+
+            const maxTemp = Math.max(...location.temp);
+            const minTemp = Math.min(...location.temp);
+            const maxPrecip = Math.max(...location.precip);
+            const tempRange = Math.max(maxTemp - minTemp + 10, 20);
+            
+
+            ctx.fillStyle = '#dc3545';
+            if (big) ctx.font = '20px Arial';
+            else ctx.font = '10px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const temp = minTemp - 5 + (tempRange / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight;
+                ctx.fillText(Math.round(temp) + '°C', margin - 5, y + 3);
+                
+
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(canvas.width - margin, y);
+                ctx.stroke();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            ctx.textAlign = 'left';
+            for (let i = 0; i <= 5; i++) {
+                const precip = (maxPrecip / 5) * i;
+                const y = canvas.height - margin - (i / 5) * chartHeight * 0.7;
+                ctx.fillText(Math.round(precip) + 'mm', canvas.width - margin + 5, y + 3);
+            }
+            
+
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+
+            ctx.fillStyle = '#dc3545';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + (i + 0.5) * (chartWidth / 12);
+                const y = canvas.height - margin - ((location.temp[i] - minTemp + 5) / tempRange) * chartHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+
+            ctx.fillStyle = '#007bff';
+            for (let i = 0; i < 12; i++) {
+                const x = margin + i * (chartWidth / 12) + (chartWidth / 24);
+                const barWidth = chartWidth / 24;
+                const barHeight = (location.precip[i] / maxPrecip) * (chartHeight * 0.7);
+                const y = canvas.height - margin - barHeight;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Temperatur (°C)', margin, 20);
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(margin + 100, 15, 15, 3);
+            
+            ctx.fillStyle = '#333';
+            ctx.fillText('Niederschlag (mm)', margin + 130, 20);
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(margin + 250, 12, 10, 10);
+            
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Temperatur Ø: ${avgTemp}°C`, margin, canvas.height - 5);
+            ctx.fillText(`Niederschlag: ${totalPrecip}mm`, margin + 120, canvas.height - 5);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
