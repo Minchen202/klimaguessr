@@ -219,12 +219,6 @@
             <button onclick="document.getElementById('legacy-popup').classList.remove('hidden')" id="legacy-tab" class="tab-button px-6 py-3 rounded-r-lg font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
                 Legacy
             </button>
-            <button id="login-tab" class="hidden tab-button px-6 py-3 rounded-l-lg font-semibold text-lg transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-                Login
-            </button>
-            <button id="register-tab" class="hidden tab-button px-6 rounded-r-lg py-3 font-semibold text-lg transition-colors duration-200 bg-gray-600 text-gray-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-                Register
-            </button>
         </div>
 
         <div id="multiplayer-content" class="tab-content active">
@@ -304,36 +298,6 @@
                 </button>
             </div>
         </div>
-        <div id="register-content" class="tab-content hidden">
-            <div class="mb-4">
-                <label for="register-username-input" class="block text-gray-300 text-sm font-bold mb-2">Username:</label>
-                <input type="text" id="register-username-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your username">
-            </div>
-            <div class="mb-4">
-                <label for="register-password-input" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-                <input type="password" id="register-password-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your password">
-            </div>
-            <div class="mb-4">
-                <label for="register-email-input" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
-                <input type="email" id="register-email-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your email">
-            </div>
-            <button id="register-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
-                Register
-            </button>
-        </div>
-        <div id="login-content" class="tab-content hidden">
-            <div class="mb-4">
-                <label for="login-username-input" class="block text-gray-300 text-sm font-bold mb-2">Username:</label>
-                <input type="text" id="login-username-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your username">
-            </div>
-            <div class="mb-6">
-                <label for="login-password-input" class="block text-gray-300 text-sm font-bold mb-2">Password:</label>
-                <input type="password" id="login-password-input" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 placeholder-gray-400 transition duration-200 focus:border-blue-500" placeholder="Enter your password">
-            </div>
-            <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 transform hover:scale-105">
-                Login
-            </button>
-        </div>
     </div>
     <div id="leaderboard" class="fixed inset-5 bg-gray-800 rounded-lg shadow-xl p-6 border normal hidden">
         <h2 class="text-2xl font-bold mb-4 text-center">Leaderboard</h2>
@@ -356,17 +320,13 @@
     <script>
         const socket = io();
         const urlParams = new URLSearchParams(window.location.search);
-        // Get references to buttons and content sections
+
         const multiplayerTab = document.getElementById('multiplayer-tab');
         const singleplayerTab = document.getElementById('singleplayer-tab');
         const legacyTab = document.getElementById('legacy-tab');
         const multiplayerContent = document.getElementById('multiplayer-content');
         const singleplayerContent = document.getElementById('singleplayer-content');
         const legacyContent = document.getElementById('legacy-content');
-        const loginTab = document.getElementById('login-tab');
-        const registerTab = document.getElementById('register-tab');
-        const loginContent = document.getElementById('login-content');
-        const registerContent = document.getElementById('register-content');
 
         let loggedIn = false;
 
@@ -379,10 +339,6 @@
                     activateTab(singleplayerTab, singleplayerContent);
                 } else if (page === 'legacy') {
                     activateTab(legacyTab, legacyContent);
-                } else if (page === 'login') {
-                    activateTab(loginTab, loginContent);
-                } else if (page === 'register') {
-                    activateTab(registerTab, registerContent);
                 } else if (page === 'leaderboard') {
                     socket.emit('get_leaderboard');
                 }
@@ -444,8 +400,6 @@
                     document.getElementById("alert").style.transform = "translateX(-100%)";
                 }, 3000);
                 document.getElementById('username').textContent = data.username;
-                document.getElementById('login-tab').classList.add('hidden');
-                document.getElementById('register-tab').classList.add('hidden');
                 document.getElementById('profile-button').classList.remove('hidden');
                 document.getElementById("usenickbtn").classList.remove("hidden");
                 loggedIn = true;
@@ -546,58 +500,6 @@
             sortLeaderboard();
             document.getElementById('leaderboard').classList.remove('hidden');
         });
-        socket.on("registration_response", function(data) {
-            if (data.success) {
-                document.getElementById("alert-text").textContent = "Registration successful";
-                document.getElementById("alert-subtitle").textContent = data.message;
-                document.getElementById("alert").style.transform = "translateX(0)";
-                document.getElementById("success-icon").classList.remove("hidden");
-                document.getElementById("error-icon").classList.add("hidden");
-                setTimeout(function() {
-                    document.getElementById("alert").style.transform = "translateX(-100%)";
-                }, 3000);
-                socket.emit('login', {
-                    'username': document.getElementById("register-username-input").value,
-                    'password': document.getElementById("register-password-input").value
-                });
-            } else {
-                document.getElementById("alert-text").textContent = "Error registering";
-                document.getElementById("alert-subtitle").textContent = data.message;
-                document.getElementById("alert").style.transform = "translateX(0)";
-                document.getElementById("success-icon").classList.add("hidden");
-                document.getElementById("error-icon").classList.remove("hidden");
-                setTimeout(function() {
-                    document.getElementById("alert").style.transform = "translateX(-100%)";
-                }, 3000);
-            }
-        });
-        socket.on("login_response", function(data) {
-            if (data.success) {
-                document.getElementById("alert-text").textContent = "Login successful";
-                document.getElementById("alert-subtitle").textContent = data.message;
-                document.getElementById("alert").style.transform = "translateX(0)";
-                document.getElementById("success-icon").classList.remove("hidden");
-                document.getElementById("error-icon").classList.add("hidden");
-                setTimeout(function() {
-                    document.getElementById("alert").style.transform = "translateX(-100%)";
-                }, 3000);
-                document.getElementById('profile-button').click();
-                activateTab(multiplayerTab, multiplayerContent);
-                document.getElementById('username').textContent = data.username;
-                document.cookie = "Token=" + data.token + "; path=/";
-                document.getElementById("usenickbtn").classList.remove("hidden");
-                loggedIn = true;
-            } else {
-                document.getElementById("alert-text").textContent = "Error logging in";
-                document.getElementById("alert-subtitle").textContent = data.message;
-                document.getElementById("alert").style.transform = "translateX(0)";
-                document.getElementById("success-icon").classList.add("hidden");
-                document.getElementById("error-icon").classList.remove("hidden");
-                setTimeout(function() {
-                    document.getElementById("alert").style.transform = "translateX(-100%)";
-                }, 3000);
-            }
-        });
         socket.on('join_result', function(data) {
             if (data.success) {
                 document.getElementById('Navigation').classList.add('hidden');
@@ -652,12 +554,6 @@
         legacyTab.addEventListener('click', () => {
             activateTab(legacyTab, legacyContent);
         });
-        loginTab.addEventListener('click', () => {
-            activateTab(loginTab, loginContent);
-        });
-        registerTab.addEventListener('click', () => {
-            activateTab(registerTab, registerContent);
-        });
         document.getElementsByClassName("button")[0].addEventListener("click", function() {
             document.getElementById("startgame-btn").classList.toggle("hidden");
             document.getElementById("lobbycodedisplay").classList.toggle("hidden");
@@ -666,35 +562,7 @@
             document.getElementById("time-limit-container2").classList.toggle("hidden");
         });
         document.getElementById("profile-button").addEventListener("click", function() {
-            if (!loggedIn) {
-                for (let i = 0; i < document.getElementsByClassName("tab-button").length; i++) {
-                    document.getElementsByClassName("tab-button")[i].classList.remove('active');
-                    document.getElementsByClassName("tab-button")[i].classList.toggle("hidden");
-                }
-                for (let i = 0; i < document.getElementsByClassName("tab-content").length; i++) {
-                    document.getElementsByClassName("tab-content")[i].classList.remove('active');
-                }
-                if (loginTab.classList.contains("hidden") || registerTab.classList.contains("hidden")) {
-                    multiplayerContent.classList.add("active");
-                    multiplayerTab.classList.add("active");
-                } else {
-                    loginTab.classList.add("active");
-                    loginContent.classList.add("active");
-                }
-            }
-        });
-        document.getElementById("register-btn").addEventListener("click", function() {
-            socket.emit('register', {
-                'username': document.getElementById("register-username-input").value,
-                'password': document.getElementById("register-password-input").value,
-                'email': document.getElementById("register-email-input").value
-            });
-        });
-        document.getElementById("login-btn").addEventListener("click", function() {
-            socket.emit('login', {
-                'username': document.getElementById("login-username-input").value,
-                'password': document.getElementById("login-password-input").value
-            });
+            window.location = "https://auth.cns-studios.com/login?redirect_uri=klimaguessr.cns-studios.com";
         });
         document.getElementById("time-limit-switch").addEventListener("change", function() {
             if (this.checked) {
