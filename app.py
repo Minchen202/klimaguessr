@@ -16,14 +16,17 @@ import db_models
 from datetime import datetime
 import json
 import logging
+import psutil
 
 load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
-        logging.StreamHandler()
+        logging.StreamHandler(),
+        logging.FileHandler('app.log')
     ]
 )
 
@@ -328,6 +331,29 @@ def settings_image():
 @app.route("/climamap", methods=["GET"])
 def climamap():
     return render_template("climamap.html")
+
+@app.route("/logs", methods=["GET"])
+def logs():
+    if request.remote_addr != "127.0.0.1":
+        logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
+        return jsonify({
+            "success": False,
+            "message": "Invalid request."
+        }), 400
+    
+    return send_from_directory('.', 'app.log')
+@app.route("/server", methods=["GET"])
+def server_info():
+    print(active_solo_games)
+    return jsonify({
+        "success": True,
+        "cpu_usage": psutil.cpu_percent(interval=1),
+        "ram_usage": psutil.virtual_memory().percent,
+        "last_restart": open('app.log', 'r').read().split('\n')[0].removeprefix('#'),
+        "active_lobbies": active_lobbies,
+        "active_solo_games": active_solo_games
+
+    })
 
 @app.route("/closest_loc", methods=["POST"])
 def closes_loc():
@@ -780,4 +806,16 @@ def handle_get_lobby_info(data):
         })
 
 if __name__ == '__main__':
+    try:
+        old_log = open('app.log', 'r').read()
+        date = old_log.split('\n')[0].removeprefix('#')
+        safe_date = date.replace(':', '-')
+        with open(os.path.join("logs", safe_date + ".log"), 'w') as f:
+            f.write(old_log)
+        open('app.log', 'w').write("#"+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"\n")
+    except Exception as e:
+        open('app.log', 'w').write("#"+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"\n")
+        logger.error(f"Error archiving log file: {e}")
+
+
     socketio.run(app,debug=os.getenv("DEBUG", False), port=8081)
