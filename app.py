@@ -334,7 +334,7 @@ def climamap():
 
 @app.route("/logs", methods=["GET"])
 def logs():
-    if request.remote_addr != "http://10.0.1.1":
+    if request.remote_addr != "10.0.1.1":
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
             "success": False,
@@ -344,8 +344,7 @@ def logs():
     return send_from_directory('.', 'app.log')
 @app.route("/server", methods=["GET"])
 def server_info():
-    logger.warning(f"access attempt to logs from {request.remote_addr}")
-    if request.remote_addr != "http://10.0.1.1":
+    if request.remote_addr != "10.0.1.1":
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
             "success": False,
