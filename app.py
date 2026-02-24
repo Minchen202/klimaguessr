@@ -344,6 +344,7 @@ def logs():
     return send_from_directory('.', 'app.log')
 @app.route("/server", methods=["GET"])
 def server_info():
+    logger.warning(f"access attempt to logs from {request.remote_addr}")
     if request.remote_addr != "https://klima-admin.cns-studios.com":
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
