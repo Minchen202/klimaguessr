@@ -334,7 +334,7 @@ def climamap():
 
 @app.route("/logs", methods=["GET"])
 def logs():
-    if request.remote_addr != "127.0.0.1":
+    if request.remote_addr != "klima-admin.cns-studios.com":
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
             "success": False,
@@ -344,7 +344,13 @@ def logs():
     return send_from_directory('.', 'app.log')
 @app.route("/server", methods=["GET"])
 def server_info():
-    print(active_solo_games)
+    if request.remote_addr != "klima-admin.cns-studios.com":
+        logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
+        return jsonify({
+            "success": False,
+            "message": "Invalid request."
+        }), 400
+    
     return jsonify({
         "success": True,
         "cpu_usage": psutil.cpu_percent(interval=1),
@@ -352,7 +358,6 @@ def server_info():
         "last_restart": open('app.log', 'r').read().split('\n')[0].removeprefix('#'),
         "active_lobbies": active_lobbies,
         "active_solo_games": active_solo_games
-
     })
 
 @app.route("/closest_loc", methods=["POST"])
