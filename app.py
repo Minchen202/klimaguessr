@@ -334,7 +334,7 @@ def climamap():
 
 @app.route("/logs", methods=["GET"])
 def logs():
-    if request.remote_addr != "10.0.1.1":
+    if request.get_json() is None or request.get_json().get("secret_key") != os.getenv("log_secret"):
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
             "success": False,
@@ -344,7 +344,7 @@ def logs():
     return send_from_directory('.', 'app.log')
 @app.route("/server", methods=["GET"])
 def server_info():
-    if request.remote_addr != "10.0.1.1":
+    if request.get_json() is None or request.get_json().get("secret_key") != os.getenv("log_secret"):
         logger.warning(f"Unauthorized access attempt to logs from {request.remote_addr}")
         return jsonify({
             "success": False,
@@ -353,7 +353,7 @@ def server_info():
     
     return jsonify({
         "success": True,
-        "cpu_usage": psutil.cpu_percent(interval=1),
+        "cpu_usage": psutil.cpu_percent(),
         "ram_usage": psutil.virtual_memory().percent,
         "last_restart": open('app.log', 'r').read().split('\n')[0].removeprefix('#'),
         "active_lobbies": active_lobbies,
