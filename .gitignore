@@ -3,3 +3,4 @@ templates/test.html
 __pycache__
 .env
 /logs/*
+app.log
