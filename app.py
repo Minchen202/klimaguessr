@@ -355,7 +355,7 @@ def server_info():
         "success": True,
         "cpu_usage": psutil.cpu_percent(),
         "ram_usage": psutil.virtual_memory().percent,
-        "last_restart": open('app.log', 'r').read().split('\n')[0].removeprefix('#'),
+        "last_restart": open('app.log', 'r').read().split('\n')[0].split("[")[0],
         "active_lobbies": active_lobbies,
         "active_solo_games": active_solo_games
     })
@@ -815,11 +815,11 @@ if __name__ == '__main__':
         old_log = open('app.log', 'r').read()
         date = old_log.split('\n')[0].removeprefix('#')
         safe_date = date.replace(':', '-')
-        with open(os.path.join("logs", safe_date + ".log"), 'w') as f:
+        with open(os.path.join("logs", open('app.log', 'r').read().split('\n')[0].split("[")[0].strip() + ".log"), 'w') as f:
             f.write(old_log)
-        open('app.log', 'w').write("#"+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"\n")
+        open('app.log', 'w').write("")
     except Exception as e:
-        open('app.log', 'w').write("#"+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"\n")
+        open('app.log', 'w').write("")
         logger.error(f"Error archiving log file: {e}")
 
 
