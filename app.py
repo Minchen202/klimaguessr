@@ -50,7 +50,15 @@ with app.app_context():
         logger.error(f"Critical error during database initialization: {e}")
 
 
-socketio = SocketIO(app, cors_allowed_origins=["https://klimaguessr.cns-studios.com", "http://klima-test.cns-studios.com/", "http://localhost:8081"])
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=[
+        "https://klimaguessr.cns-studios.com",
+        "https://klima-test.cns-studios.com",
+        "http://klima-test.cns-studios.com",
+        "http://localhost:" + os.getenv("PORT", "8081")
+    ]
+)
 
 active_lobbies = {}
 active_solo_games = {}
