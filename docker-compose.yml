@@ -2,11 +2,13 @@ version: '3.8'
 services:
   web:
     build: .
+    env_file:
+      - .env
     ports:
-      - "8081:8081"
+      - "${PORT}:${PORT}"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.klimaguessr.loadbalancer.sticky=true"
-      - "traefik.http.services.klimaguessr.loadbalancer.sticky.cookie.name=socket_sticky_cookie"
-      - "traefik.http.services.klimaguessr.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.services.${SERVICE_NAME:-klimaguessr}.loadbalancer.sticky=true"
+      - "traefik.http.services.${SERVICE_NAME:-klimaguessr}.loadbalancer.sticky.cookie.name=socket_sticky_cookie"
+      - "traefik.http.services.${SERVICE_NAME:-klimaguessr}.loadbalancer.sticky.cookie.httpOnly=true"
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
