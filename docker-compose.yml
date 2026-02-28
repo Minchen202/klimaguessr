@@ -2,8 +2,10 @@ version: '3.8'
 services:
   web:
     build: .
+    env_file:
+      - .env
     ports:
-      - "8081:8081"
+      - "${PORT}:${PORT}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.klimaguessr.loadbalancer.sticky=true"

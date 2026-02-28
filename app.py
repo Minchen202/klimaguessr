@@ -823,4 +823,4 @@ if __name__ == '__main__':
         logger.error(f"Error archiving log file: {e}")
 
 
-    socketio.run(app,debug=os.getenv("DEBUG", False), port=8081)
+    socketio.run(app,debug=os.getenv("DEBUG", False), port=int(os.getenv("PORT", 8081)))
