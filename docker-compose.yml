@@ -12,3 +12,8 @@ services:
       - "traefik.http.services.klimaguessr.loadbalancer.sticky.cookie.name=socket_sticky_cookie"
       - "traefik.http.services.klimaguessr.loadbalancer.sticky.cookie.httpOnly=true"
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+
+      - "traefik.http.services.klima-test.loadbalancer.sticky=true"
+      - "traefik.http.services.klima-test.loadbalancer.sticky.cookie.name=socket_sticky_cookie"
+      - "traefik.http.services.klima-test.loadbalancer.sticky.cookie.httpOnly=true"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
